@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6400:6379"
+    volumes:
+      - ./redis_data:/data
+

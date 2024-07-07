@@ -2,7 +2,7 @@
 name = "python-client"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Alexandru Dochian <alexandru.dochian@forktex.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -12,7 +12,9 @@ pygame = "^2.5.2"
 matplotlib = "^3.8.3"
 pandas = "^2.2.1"
 torch = "^2.2.2"
-
+mayavi = "^4.8.1"
+redis = "^5.0.7"
+pydantic = "^2.8.2"
 
 [build-system]
 requires = ["poetry-core"]

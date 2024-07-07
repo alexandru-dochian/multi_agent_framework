@@ -1,2 +1,6 @@
 crazyflie-lib-python/
 cache/
+cache*
+.idea
+__pycache__
+redis_data

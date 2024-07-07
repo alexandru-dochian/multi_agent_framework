@@ -1,133 +1,229 @@
-import logging
-import sys
+import multiprocessing as mp
+import os
 import time
-from threading import Event
-
-import cflib.crtp
-from cflib.crazyflie import Crazyflie
-from cflib.crazyflie.log import LogConfig
-from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
-from cflib.positioning.motion_commander import MotionCommander
-from cflib.utils import uri_helper
-import pandas as pd
+import threading
+import signal
+from abc import ABC
 
 import torch
-import torch.nn as nn
-import torch.optim as optim
 
-columns = [
-    'stateEstimate.x',
-    'stateEstimate.y',
-    'stateEstimate.z',
-    'stateEstimate.vx',
-    'stateEstimate.vy',
-    'stateEstimate.vz',
-]
+from analytics import input_space_viz, central_viz
+from core import get_communicator, Communicator
 
-df: pd.DataFrame = pd.DataFrame(columns=columns)
+from agent import spawn_agent, Position, FieldState, Field
 
-URI = uri_helper.uri_from_env(default='radio://0/100/2M/E7E7E7E702')
 
-DEFAULT_HEIGHT = 0.4
-MAX_HEIGHT = 1.5 * DEFAULT_HEIGHT
-BOX_LIMIT = 0.2
+def signal_handler(signal_received, frame):
+    communicator: Communicator = get_communicator("RedisCommunicator")
+    print(f"\nReceived CTRL-C for [{os.getpid()}] of parent [{os.getppid()}]...")
+    communicator.send(Communicator.CommKey.STOP_EVENT, True)
 
-position_estimate = [0, 0, 0]
 
-deck_attached_event = Event()
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
 
-logging.basicConfig(level=logging.ERROR)
 
-def param_deck_flow(_, value_str):
-    value = int(value_str)
-    print(value)
-    if value:
-        deck_attached_event.set()
-        print('Deck is attached!')
+def apply_distribution(tensor: torch.Tensor, position: Position, sigma=5, amplitude=1, add=True):
+    """
+    Apply a Gaussian distribution around a given position on a 2D tensor.
+
+    Args:
+    - tensor (torch.Tensor): Input 2D tensor representing the map.
+    - position (Position): Position (x, y) where the distribution will be centered.
+    - sigma (float): Standard deviation of the Gaussian distribution.
+    - amplitude (float): Amplitude of the Gaussian distribution.
+
+    Returns:
+    - torch.Tensor: Modified tensor with the Gaussian distribution applied.
+    """
+    x = position.x
+    y = position.y
+    grid_x, grid_y = torch.meshgrid(torch.arange(tensor.size(0)), torch.arange(tensor.size(1)))
+    gaussian = amplitude * torch.exp(-((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma ** 2))
+    if add:
+        return tensor + gaussian
     else:
-        print('Deck is NOT attached!')
-
-def take_off_simple(scf):
-    with MotionCommander(scf, default_height=DEFAULT_HEIGHT) as mc:
-        time.sleep(3)
-        mc.stop()
-
-def move_linear_simple(scf):
-    with MotionCommander(scf, default_height=DEFAULT_HEIGHT) as mc:
-        time.sleep(1)
-        mc.forward(0.5)
-        time.sleep(1)
-
-def move_box_limit(scf):
-    with MotionCommander(scf, default_height=DEFAULT_HEIGHT) as mc:
-        body_x_cmd = 1
-        body_y_cmd = 1
-        body_z_cmd = 0
-        max_vel = 0.2
-        max_z_velocity = 0.1
-
-        total_time = 30 # seconds
-        spent_time = 0
-        while (spent_time < total_time):
-            if position_estimate[0] > BOX_LIMIT:
-                body_x_cmd = -max_vel
-            elif position_estimate[0] < -BOX_LIMIT:
-                body_x_cmd = max_vel
-            if position_estimate[1] > BOX_LIMIT:
-                body_y_cmd = -max_vel
-            elif position_estimate[1] < -BOX_LIMIT:
-                body_y_cmd = max_vel
-
-            if position_estimate[2] <= DEFAULT_HEIGHT:
-                body_z_cmd = max_z_velocity
-            elif position_estimate[2] >= MAX_HEIGHT:
-                body_z_cmd = -max_z_velocity
-
-            mc.start_linear_motion(body_x_cmd, body_y_cmd, body_z_cmd)
-
-            time.sleep(0.1)
-            spent_time += 0.1
-
-        df.to_csv("omg.csv", index=False)
+        return tensor - gaussian
 
 
-def log_pos_callback(timestamp, data, logconf):
-    global position_estimate
-    global df
-    # row_df = pd.DataFrame.from_dict(data)
-    row_df = pd.DataFrame(data, index=[0])
-    df = pd.concat([df, row_df])
-
-    print("row_df", row_df)
-    position_estimate[0] = data['stateEstimate.x']
-    position_estimate[1] = data['stateEstimate.y']
-    position_estimate[2] = data['stateEstimate.z']
-
-if __name__ == '__main__':
-    cflib.crtp.init_drivers()
-
-    with SyncCrazyflie(URI, cf=Crazyflie(rw_cache='./cache')) as scf:
-
-        scf.cf.param.add_update_callback(group='deck', name='bcFlow2',
-                                         cb=param_deck_flow)
-        time.sleep(1)
+class EnvironmentConfig(ABC):
+    def __init__(self):
+        ...
 
 
-        logconf = LogConfig(name='Position', period_in_ms=10)
-        logconf.add_variable('stateEstimate.x', 'float')
-        logconf.add_variable('stateEstimate.y', 'float')
-        logconf.add_variable('stateEstimate.z', 'float')
-        logconf.add_variable('stateEstimate.vx', 'float')
-        logconf.add_variable('stateEstimate.vy', 'float')
-        logconf.add_variable('stateEstimate.vz', 'float')
-        
-        scf.cf.log.add_config(logconf)
-        logconf.data_received_cb.add_callback(log_pos_callback)
+class Environment(ABC):
+    def __init__(self, config: EnvironmentConfig):
+        ...
 
-        if not deck_attached_event.wait(timeout=5):
-            print('No flow deck detected!')
-            sys.exit(1)
+    def run(self):
+        ...
 
-        logconf.start()
-        move_box_limit(scf)
-        logconf.stop()
+
+class FieldModulationEnvironment(ABC):
+    def __init__(self, config: EnvironmentConfig):
+        ...
+
+    def run(self):
+        ...
+
+
+def environment_loop(agent_ids: list[str]):
+    ...
+    # env_comm: Communicator = get_communicator("RedisCommunicator")
+    # env_comm.send(Communicator.CommKey.STOP_EVENT, False)
+    #
+    # positions: list[Position] = []
+    # big_field: Field = Field(data=torch.zeros(1024, 1024))
+    # for agent_id in agent_ids:
+    #     state_key = Communicator.get_state_key(agent_id)
+    #     state: FieldState = env_comm.recv(state_key)
+    #     positions.append(state.position)
+    #     apply_distribution(big_field, state.position, add=False)
+
+
+if __name__ == "__main__":
+    threads = [
+        threading.Thread(target=spawn_agent, args=(
+            "CFAgent2D",
+            "CFAgent2DConfig",
+            {
+                "agent_id": "radio://0/100/2M/E7E7E7E707",
+                "clock_freq": 10,
+                "default_height": 0.4,
+                "max_vel": 0.2,
+                "communicator": "RedisCommunicator",
+                "log_variables": [
+                    "stateEstimate.x",
+                    "stateEstimate.y",
+                    "stateEstimate.z",
+                ],
+                "log_interval_ms": 500,
+                "total_time": 60,
+            },
+            "GoToPointController",
+            "CFControllerConfig",
+            {
+                "target_position": {
+                    "x": 1.5,
+                    "y": 2,
+                },
+            },
+        )),
+        threading.Thread(target=spawn_agent, args=(
+            "CFAgent2D",
+            "CFAgent2DConfig",
+            {
+                "agent_id": "radio://0/100/2M/E7E7E7E704",
+                "clock_freq": 10,
+                "default_height": 0.4,
+                "max_vel": 0.2,
+                "communicator": "RedisCommunicator",
+                "log_variables": [
+                    "stateEstimate.x",
+                    "stateEstimate.y",
+                    "stateEstimate.z",
+                ],
+                "log_interval_ms": 500,
+                "total_time": 60,
+            },
+            "GoToPointController",
+            "CFControllerConfig",
+            {
+                "target_position": {
+                    "x": -2.5,
+                    "y": -1,
+                },
+            },
+        )),
+        threading.Thread(target=spawn_agent, args=(
+            "CFAgent2D",
+            "CFAgent2DConfig",
+            {
+                "agent_id": "radio://0/100/2M/E7E7E7E70A",
+                "clock_freq": 10,
+                "default_height": 0.4,
+                "max_vel": 0.2,
+                "communicator": "RedisCommunicator",
+                "log_variables": [
+                    "stateEstimate.x",
+                    "stateEstimate.y",
+                    "stateEstimate.z",
+                ],
+                "log_interval_ms": 500,
+                "total_time": 60,
+            },
+            "GoToPointController",
+            "CFControllerConfig",
+            {
+                "target_position": {
+                    "x": -2.5,
+                    "y": 2,
+                },
+            },
+        )),
+        threading.Thread(target=spawn_agent, args=(
+            "CFAgent2D",
+            "CFAgent2DConfig",
+            {
+                "agent_id": "radio://0/100/2M/E7E7E7E708",
+                "clock_freq": 10,
+                "default_height": 0.4,
+                "max_vel": 0.2,
+                "communicator": "RedisCommunicator",
+                "log_variables": [
+                    "stateEstimate.x",
+                    "stateEstimate.y",
+                    "stateEstimate.z",
+                ],
+                "log_interval_ms": 500,
+                "total_time": 60,
+            },
+            "GoToPointController",
+            "CFControllerConfig",
+            {
+                "target_position": {
+                    "x": 1.5,
+                    "y": -1,
+                },
+            },
+        ))
+    ]
+
+    agent_ids = [
+        "radio://0/100/2M/E7E7E7E707",
+        "radio://0/100/2M/E7E7E7E704",
+        "radio://0/100/2M/E7E7E7E70A",
+        "radio://0/100/2M/E7E7E7E708",
+    ]
+    processes = [
+        mp.Process(target=input_space_viz, args=("radio://0/100/2M/E7E7E7E707", "RedisCommunicator")),
+        mp.Process(target=input_space_viz, args=("radio://0/100/2M/E7E7E7E704", "RedisCommunicator")),
+        mp.Process(target=input_space_viz, args=("radio://0/100/2M/E7E7E7E70A", "RedisCommunicator")),
+        mp.Process(target=input_space_viz, args=("radio://0/100/2M/E7E7E7E708", "RedisCommunicator")),
+        mp.Process(target=central_viz, args=(agent_ids, "RedisCommunicator")),
+    ]
+
+    # Starting processes
+    for p in processes:
+        p.start()
+
+    # Starting threads
+    for t in threads:
+        t.start()
+
+    communicator: Communicator = get_communicator("RedisCommunicator")
+    communicator.send(Communicator.CommKey.STOP_EVENT, False)
+
+    while not (communicator.recv(Communicator.CommKey.STOP_EVENT) is True):
+        environment_loop(agent_ids)
+        time.sleep(0.5)
+
+    # Wait for threads to finish
+    for t in threads:
+        t.join()
+
+    # Wait for processes to finish
+    for p in processes:
+        p.join()
+
+    print("Finished root process")
