@@ -1,0 +1,63 @@
+{
+  "communicator": {
+    "class_name": "RedisCommunicator"
+  },
+  "environments": [
+    {
+      "worker": "Process",
+      "class_name": "FieldModulationEnvironment",
+      "params": {
+        "config": {
+          "clock_freq": "10"
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    }
+  ],
+  "agents": [
+    {
+      "worker": "Thread",
+      "class_name": "VirtualDrone2D",
+      "params": {
+        "config": {
+          "agent_id": "07",
+          "clock_freq": 20,
+          "default_height": 0.4,
+          "max_vel": 0.2,
+          "log_interval_ms": 200,
+          "total_time": 60
+        },
+        "controller": {
+          "class_name": "GoToPointController",
+          "params": {
+            "config": {
+              "target_position": {
+                "x": 1,
+                "y": 1
+              }
+            }
+          }
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    }
+  ],
+  "loggers": [
+    {
+      "worker": "Process",
+      "class_name": "PositionLogger",
+      "params": {
+        "config": {
+          "gui_enabled": true
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    }
+  ]
+}

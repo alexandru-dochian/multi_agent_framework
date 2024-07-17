@@ -1,6 +1,25 @@
+from abc import ABC
+
+import pydantic
 import torch
 
-from core import Communicator, get_communicator
+from communicator import Communicator, get_communicator
+
+
+class LoggerConfig(pydantic.BaseModel, ABC):
+    ...
+
+
+class PositionLoggerConfig(pydantic.BaseModel):
+    gui_enabled: bool = True
+    communicator: str
+
+
+class PositionLogger:
+    config: PositionLoggerConfig
+
+    def __init__(self, config: dict) -> None:
+        self.config: PositionLoggerConfig = PositionLoggerConfig(**config)
 
 
 def input_space_viz(agent_id: str, communicator: str):
@@ -71,3 +90,13 @@ def central_viz(agents: list[str], communicator: str):
     mlab.show()
 
     print("Finished Master Viz")
+
+
+def spawn_logger(
+    logger_class: str,
+    params: dict,
+):
+    """
+    This method is the entrypoint for the logger process
+    """
+    print(f"Spawn {logger_class} logger!")

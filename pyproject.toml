@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "python-client"
-version = "0.1.0"
+name = "multi-agent-framework"
+version = "1.0.0"
 description = ""
 authors = ["Alexandru Dochian <alexandru.dochian@forktex.com>"]
 readme = "README.md"
