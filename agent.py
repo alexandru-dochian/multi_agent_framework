@@ -1,4 +1,5 @@
 import time
+from abc import ABC, abstractmethod
 
 from threading import Event
 
@@ -11,17 +12,46 @@ from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.positioning.motion_commander import MotionCommander
 
 from communicator import Communicator, get_communicator
-from controller import get_controller
+from controller import get_controller, Controller
 from core import (
     Config,
-    Agent,
-    Controller,
     FieldState,
     Position,
     Action,
     VelocityCommand2D,
     SimpleAction2D,
+    ProcessInitConfig,
+    State,
+    Command,
 )
+
+
+class Agent(ABC):
+    config: Config
+    state: State
+    controller: Controller
+    communicator: Communicator
+
+    def __init__(
+            self,
+            config: Config,
+            state: State,
+            controller: Controller,
+            communicator: Communicator,
+    ):
+        self.config = config
+        self.state = state
+        self.controller: Controller = controller
+        self.communicator: Communicator = communicator
+
+    @abstractmethod
+    def run(self):
+        ...
+
+    @staticmethod
+    @abstractmethod
+    def action_to_command(action: Action) -> Command:
+        ...
 
 
 class VirtualDrone2DConfig(Config):
@@ -29,18 +59,19 @@ class VirtualDrone2DConfig(Config):
     clock_freq: int = 5  # hz
     max_vel: float = 0.1  # m/s
     total_time: int = 60  # seconds
+    start_position: Position = Position(x=0, y=0, z=0)
 
 
 class VirtualDrone2D(Agent):
-    config: Config
-    state: FieldState
+    config: VirtualDrone2DConfig
+    state: State
     controller: Controller
     communicator: Communicator
 
     def __init__(self, config: dict, controller: dict, communicator: dict):
         super().__init__(
             VirtualDrone2DConfig(**config),
-            FieldState(),
+            None,
             get_controller(controller),
             get_communicator(communicator),
         )
@@ -51,26 +82,26 @@ class VirtualDrone2D(Agent):
         # register on communicator
         self.communicator.register_agent(self.config.agent_id)
 
+        # register initial state
+        self.communicator.broadcast_state(
+            self.config.agent_id, FieldState(position=self.config.start_position)
+        )
+
         spent_time = 0
         while (spent_time < self.config.total_time) and self.communicator.is_active():
-            state: FieldState = self.get_state()
-            if state is None:
-                continue
-            self.controller.set_state(state)
+            state: FieldState = self.communicator.get_state(self.config.agent_id)
 
+            self.controller.set_state(state)
             action: SimpleAction2D = self.controller.predict()
             command: VelocityCommand2D = self.action_to_command(action)
             command = command.scale(self.config.max_vel)
 
             new_state = self.compute_new_state(state, command)
-            self.set_state(new_state)
+            self.communicator.broadcast_state(self.config.agent_id, new_state)
 
             duration: float = 1 / self.config.clock_freq
             time.sleep(duration)
             spent_time += duration
-            print(
-                f"current_position = {state.position} | action = [{action}] command = {command}"
-            )
 
         print(f"Finished [{self.config.agent_id}]!")
 
@@ -82,6 +113,7 @@ class VirtualDrone2D(Agent):
         new_position: Position = Position(
             x=old_position.x + command.vel_x * duration,
             y=old_position.y + command.vel_y * duration,
+            z=old_position.z,
         )
         return FieldState(position=new_position, field=old_state.field)
 
@@ -101,15 +133,6 @@ class VirtualDrone2D(Agent):
 
         if action == SimpleAction2D.STOP:
             return VelocityCommand2D(vel_x=0, vel_y=0)
-
-    def set_state(self, state: FieldState) -> None:
-        state_key: str = Communicator.get_state_key(self.config.agent_id)
-        self.communicator.send(state_key, state)
-
-    def get_state(self) -> FieldState:
-        state_key: str = Communicator.get_state_key(self.config.agent_id)
-        state: FieldState = self.communicator.recv(state_key)
-        return state
 
 
 class CFDrone2DConfig(Config):
@@ -234,22 +257,15 @@ class CFDrone2D(Agent):
         if action == SimpleAction2D.STOP:
             return VelocityCommand2D(vel_x=0, vel_y=0)
 
-    def get_state(self) -> FieldState:
-        return self.state
 
-    def set_state(self, state: FieldState):
-        self.state = state
-
-
-def spawn_agent(
-        class_name: str,
-        params: dict,
-):
-    # """
-    # This method is the entrypoint for the agent process
-    # """
-    print(f"Spawn {class_name} agent!")
-    agent_class: type[Agent] = globals()[class_name]
-    agent: Agent = agent_class(**params)
-
+def spawn_agent(init_config: ProcessInitConfig):
+    """
+    This method is the entrypoint for the agent process
+    """
+    print(f"Spawn {init_config.class_name} agent {init_config.worker}!")
+    agent_class: type[Agent] = globals()[init_config.class_name]
+    assert issubclass(
+        agent_class, Agent
+    ), f"Communicator [{init_config.class_name}] was not found"
+    agent: Agent = agent_class(**init_config.params)
     agent.run()

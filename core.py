@@ -62,12 +62,19 @@ class Field:
         self.data = data
 
 
-class FieldState(State):
+class PositionState(State):
+    position: Position
+
+    def __init__(self, position: Position = None):
+        self.position = position
+
+
+class FieldState(PositionState):
     position: Position
     field: Field
 
     def __init__(self, position: Position = None, field: Field = None):
-        self.position = position
+        super().__init__(position)
         self.field = field
 
 
@@ -78,11 +85,11 @@ class Communicator(ABC):
         self.config = config
 
     @abstractmethod
-    def start_communication(self):
+    def activate(self):
         ...
 
     @abstractmethod
-    def stop_communication(self, *kwargs):
+    def stop(self, *kwargs):
         ...
 
     @abstractmethod
@@ -109,84 +116,20 @@ class Communicator(ABC):
     def registered_agents(self) -> list[str]:
         ...
 
-    @staticmethod
-    def get_pos_key(agent_id: str) -> str:
-        return f"{agent_id}_pos"
-
-    @staticmethod
-    def get_action_key(agent_id: str) -> str:
-        return f"{agent_id}_action"
-
-    @staticmethod
-    def get_state_key(agent_id: str) -> str:
-        return f"{agent_id}_state"
-
-
-class Environment(ABC):
-    config: Config
-    state: State
-    communicator: Communicator
-
-    def __init__(self, config: Config, state: State, communicator: Communicator):
-        self.config = config
-        self.state = state
-        self.communicator = communicator
-
     @abstractmethod
-    def run(self):
-        ...
-
-
-class Controller(ABC):
-    config: Config
-    state: State
-
-    def __init__(self, config: Config, state: State):
-        self.config = config
-        self.state = state
-
-    @abstractmethod
-    def predict(self) -> Action:
+    def broadcast_state(self, agent_id: str, state: State):
         ...
 
     @abstractmethod
-    def set_state(self, state: State):
-        ...
-
-
-class Agent(ABC):
-    config: Config
-    state: State
-    controller: Controller
-    communicator: Communicator
-
-    def __init__(
-            self,
-            config: Config,
-            state: State,
-            controller: Controller,
-            communicator: Communicator,
-    ):
-        self.config = config
-        self.state = state
-        self.controller: Controller = controller
-        self.communicator: Communicator = communicator
-
-    @abstractmethod
-    def run(self):
-        ...
-
-    @staticmethod
-    @abstractmethod
-    def action_to_command(action: Action) -> Command:
+    def broadcast_action(self, agent_id: str, action: Action):
         ...
 
     @abstractmethod
-    def set_state(self, state: State):
+    def get_state(self, agent_id: str) -> State:
         ...
 
     @abstractmethod
-    def get_state(self) -> State:
+    def get_action(self, agent_id: str) -> Action:
         ...
 
 
@@ -197,15 +140,8 @@ class Worker(str, Enum):
 
 class ObjectInitConfig(Config):
     class_name: str
-    params: dict | None = {}
+    params: dict = {}
 
 
 class ProcessInitConfig(ObjectInitConfig):
     worker: Worker
-
-
-class ExperimentConfig(Config):
-    communicator: ObjectInitConfig
-    environments: list[ProcessInitConfig]
-    agents: list[ProcessInitConfig]
-    loggers: list[ProcessInitConfig]

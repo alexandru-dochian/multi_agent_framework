@@ -4,3 +4,4 @@ cache*
 .idea
 __pycache__
 redis_data
+data/

@@ -1,7 +1,9 @@
 {
-  "communicator": {
-    "class_name": "RedisCommunicator"
-  },
+  "communicators": [
+    {
+      "class_name": "RedisCommunicator"
+    }
+  ],
   "environments": [],
   "agents": [
     {
@@ -11,15 +13,15 @@
         "config": {
           "agent_id": "radio://0/100/2M/E7E7E7E707",
           "clock_freq": 20,
-          "default_height": 0.4,
-          "max_vel": 0.2,
+          "default_height": 0.6,
+          "max_vel": 0.5,
           "log_variables": [
             "stateEstimate.x",
             "stateEstimate.y",
             "stateEstimate.z"
           ],
           "log_interval_ms": 200,
-          "total_time": 60
+          "total_time": 120
         },
         "controller": {
           "class_name": "KeyboardController"

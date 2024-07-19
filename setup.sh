@@ -31,15 +31,15 @@ setup_ubuntu() {
   poetry env use 3.11
   poetry install
 
-  echo "Install pyqt5 for mayavi rendering"
-  python3 -m pip install pyqt5
-
   echo "Install crazyflie-lib-python for crazyflie drones"
   git clone https://github.com/bitcraze/crazyflie-lib-python
   cd crazyflie-lib-python && pip install -e . && cd ..
   python3 -m pip install cfclient
 
   poetry shell
+
+  echo "Install pyqt5 for mayavi rendering"
+  python3 -m pip install pyqt5
 }
 
 setup_macos() {

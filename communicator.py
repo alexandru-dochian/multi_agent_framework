@@ -3,7 +3,7 @@ import pickle
 
 import redis
 
-from core import Communicator, Config, ObjectInitConfig
+from core import Communicator, Config, ObjectInitConfig, Action, State
 
 
 class RedisCommunicatorConfig(Config):
@@ -26,13 +26,15 @@ class RedisCommunicator(Communicator):
             host=self.config.host, port=self.config.port, db=self.config.db
         )
 
-    def start_communication(self):
+    def activate(self):
         # clear cached registered agents
         self.redis_instance.unlink(self.REGISTERED_AGENTS)
         self.send(self.STOP_EVENT, False)
 
-    def stop_communication(self, signal, *kwargs):
-        print(f"Signal [{signal}] received on [{os.getpid()}] of parent [{os.getppid()}]. Stopping communication!")
+    def stop(self, signal, *kwargs):
+        print(
+            f"Signal [{signal}] received on [{os.getpid()}] of parent [{os.getppid()}]. Stopping communication!"
+        )
         self.send(self.STOP_EVENT, True)
 
     def is_active(self):
@@ -59,9 +61,33 @@ class RedisCommunicator(Communicator):
             for member in self.redis_instance.smembers(self.REGISTERED_AGENTS)
         ]
 
+    def broadcast_state(self, agent_id: str, state: State):
+        state_key: str = self._get_state_key(agent_id)
+        self.send(state_key, state)
 
-def get_communicator(init_config: dict) -> Communicator:
-    init_config: ObjectInitConfig = ObjectInitConfig(**init_config)
+    def broadcast_action(self, agent_id: str, action: Action):
+        action_key: str = self._get_action_key(agent_id)
+        self.send(action_key, action)
+
+    def get_state(self, agent_id: str) -> State:
+        return self.recv(self._get_state_key(agent_id))
+
+    def get_action(self, agent_id: str) -> Action:
+        return self.recv(self._get_action_key(agent_id))
+
+    @staticmethod
+    def _get_action_key(agent_id: str) -> str:
+        return f"{agent_id}_action"
+
+    @staticmethod
+    def _get_state_key(agent_id: str) -> str:
+        return f"{agent_id}_state"
+
+
+def get_communicator(init_config: dict | ObjectInitConfig) -> Communicator:
+    if isinstance(init_config, dict):
+        init_config: ObjectInitConfig = ObjectInitConfig(**init_config)
+
     communicator_class: type[Communicator] = globals()[init_config.class_name]
     assert issubclass(
         communicator_class, Communicator

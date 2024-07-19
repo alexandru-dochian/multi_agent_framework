@@ -4,18 +4,22 @@
       "class_name": "RedisCommunicator"
     }
   ],
-  "environments": [
-  ],
+  "environments": [],
   "agents": [
     {
       "worker": "Thread",
-      "class_name": "VirtualDrone2D",
+      "class_name": "CFDrone2D",
       "params": {
         "config": {
-          "agent_id": "A",
+          "agent_id": "radio://0/100/2M/E7E7E7E707",
           "clock_freq": 10,
-          "default_height": 0.4,
-          "max_vel": 0.2,
+          "default_height": 0.6,
+          "max_vel": 0.5,
+          "log_variables": [
+            "stateEstimate.x",
+            "stateEstimate.y",
+            "stateEstimate.z"
+          ],
           "log_interval_ms": 200,
           "total_time": 60
         },
@@ -24,63 +28,7 @@
           "params": {
             "config": {
               "target_position": {
-                "x": -2,
-                "y": -2
-              }
-            }
-          }
-        },
-        "communicator": {
-          "class_name": "RedisCommunicator"
-        }
-      }
-    },
-    {
-      "worker": "Thread",
-      "class_name": "VirtualDrone2D",
-      "params": {
-        "config": {
-          "agent_id": "B",
-          "clock_freq": 10,
-          "default_height": 0.4,
-          "max_vel": 0.2,
-          "log_interval_ms": 200,
-          "total_time": 60
-        },
-        "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": 2,
-                "y": -2
-              }
-            }
-          }
-        },
-        "communicator": {
-          "class_name": "RedisCommunicator"
-        }
-      }
-    },
-    {
-      "worker": "Thread",
-      "class_name": "VirtualDrone2D",
-      "params": {
-        "config": {
-          "agent_id": "C",
-          "clock_freq": 10,
-          "default_height": 0.4,
-          "max_vel": 0.2,
-          "log_interval_ms": 200,
-          "total_time": 60
-        },
-        "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": 2,
+                "x": 1.5,
                 "y": 2
               }
             }
@@ -93,13 +41,18 @@
     },
     {
       "worker": "Thread",
-      "class_name": "VirtualDrone2D",
+      "class_name": "CFDrone2D",
       "params": {
         "config": {
-          "agent_id": "D",
+          "agent_id": "radio://0/100/2M/E7E7E7E708",
           "clock_freq": 10,
-          "default_height": 0.4,
-          "max_vel": 0.2,
+          "default_height": 0.6,
+          "max_vel": 0.5,
+          "log_variables": [
+            "stateEstimate.x",
+            "stateEstimate.y",
+            "stateEstimate.z"
+          ],
           "log_interval_ms": 200,
           "total_time": 60
         },
@@ -108,7 +61,40 @@
           "params": {
             "config": {
               "target_position": {
-                "x": -2,
+                "x": 1.5,
+                "y": -1.0
+              }
+            }
+          }
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    },
+    {
+      "worker": "Thread",
+      "class_name": "CFDrone2D",
+      "params": {
+        "config": {
+          "agent_id": "radio://0/100/2M/E7E7E7E70A",
+          "clock_freq": 10,
+          "default_height": 0.6,
+          "max_vel": 0.5,
+          "log_variables": [
+            "stateEstimate.x",
+            "stateEstimate.y",
+            "stateEstimate.z"
+          ],
+          "log_interval_ms": 200,
+          "total_time": 60
+        },
+        "controller": {
+          "class_name": "GoToPointController",
+          "params": {
+            "config": {
+              "target_position": {
+                "x": -2.5,
                 "y": 2
               }
             }
@@ -121,13 +107,18 @@
     },
     {
       "worker": "Thread",
-      "class_name": "VirtualDrone2D",
+      "class_name": "CFDrone2D",
       "params": {
         "config": {
-          "agent_id": "X",
+          "agent_id": "radio://0/100/2M/E7E7E7E704",
           "clock_freq": 10,
-          "default_height": 0.4,
-          "max_vel": 0.2,
+          "default_height": 0.6,
+          "max_vel": 0.5,
+          "log_variables": [
+            "stateEstimate.x",
+            "stateEstimate.y",
+            "stateEstimate.z"
+          ],
           "log_interval_ms": 200,
           "total_time": 60
         },
@@ -136,8 +127,8 @@
           "params": {
             "config": {
               "target_position": {
-                "x": 0,
-                "y": 0
+                "x": -2.5,
+                "y": -1
               }
             }
           }
@@ -148,34 +139,6 @@
       }
     }
   ],
-  "log_handlers": [
-    {
-      "worker": "Process",
-      "class_name": "PositionLogger",
-      "params": {
-        "config": {
-          "experiment_dir": "default",
-          "gui_enabled": true
-        },
-        "communicator": {
-          "class_name": "RedisCommunicator"
-        }
-      }
-    },
-    {
-      "worker": "Process",
-      "class_name": "FieldStateLogger",
-      "params": {
-        "config": {
-          "experiment_dir": "default",
-          "agent_id": "X",
-
-          "gui_enabled": true
-        },
-        "communicator": {
-          "class_name": "RedisCommunicator"
-        }
-      }
-    }
+  "loggers": [
   ]
 }

@@ -1,6 +1,33 @@
+from abc import ABC, abstractmethod
+
 import pygame
 
-from core import Config, Position, SimpleAction2D, Controller, State, FieldState, ObjectInitConfig
+from core import (
+    Config,
+    Position,
+    SimpleAction2D,
+    State,
+    ObjectInitConfig,
+    Action,
+    PositionState,
+)
+
+
+class Controller(ABC):
+    config: Config
+    state: State
+
+    def __init__(self, config: Config, state: State):
+        self.config = config
+        self.state = state
+
+    @abstractmethod
+    def predict(self) -> Action:
+        ...
+
+    @abstractmethod
+    def set_state(self, state: State):
+        ...
 
 
 class GoToPointControllerConfig(Config):
@@ -10,15 +37,15 @@ class GoToPointControllerConfig(Config):
 
 class GoToPointController(Controller):
     config: GoToPointControllerConfig
-    state: FieldState
+    state: PositionState
 
     def __init__(self, config: dict):
-        super().__init__(GoToPointControllerConfig(**config), FieldState())
+        super().__init__(GoToPointControllerConfig(**config), PositionState())
         assert (
-                self.config.target_position is not None
+            self.config.target_position is not None
         ), f"Target position [target_position] must be specified for {self.__class__.__name__}"
 
-    def set_state(self, state: FieldState):
+    def set_state(self, state: PositionState):
         self.state = state
 
     def predict(self) -> SimpleAction2D:
@@ -35,7 +62,7 @@ class GoToPointController(Controller):
         delta_x = target_x - current_x
         delta_y = target_y - current_y
 
-        epsilon: float = 10e-6
+        epsilon: float = 0.1
         if abs(delta_x) < epsilon and abs(delta_y) < epsilon:
             return SimpleAction2D.STOP
 
@@ -84,7 +111,6 @@ class KeyboardController(Controller):
 
         return self.last_action
 
-    # @override
     def set_state(self, state: State):
         pass
 

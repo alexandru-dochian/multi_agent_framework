@@ -1,16 +1,29 @@
-"""
-Config
-"""
 import time
+from abc import ABC, abstractmethod
 
 import torch
 
 from communicator import get_communicator
-from core import Config, Environment, Position, Communicator
+from core import Config, Position, Communicator, ProcessInitConfig, State
+
+
+class Environment(ABC):
+    config: Config
+    state: State
+    communicator: Communicator
+
+    def __init__(self, config: Config, state: State, communicator: Communicator):
+        self.config = config
+        self.state = state
+        self.communicator = communicator
+
+    @abstractmethod
+    def run(self):
+        ...
 
 
 def apply_distribution(
-        tensor: torch.Tensor, position: Position, sigma=5, amplitude=1, add=True
+    tensor: torch.Tensor, position: Position, sigma=5, amplitude=1, add=True
 ):
     """
     Apply a Gaussian distribution around a given position on a 2D tensor.
@@ -30,7 +43,7 @@ def apply_distribution(
         torch.arange(tensor.size(0)), torch.arange(tensor.size(1))
     )
     gaussian = amplitude * torch.exp(
-        -((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma ** 2)
+        -((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma**2)
     )
     if add:
         return tensor + gaussian
@@ -47,7 +60,11 @@ class FieldModulationEnvironment(Environment):
     communicator: Communicator
 
     def __init__(self, config: dict, communicator: dict):
-        super().__init__(FieldModulationEnvironmentConfig(**config), None, get_communicator(communicator))
+        super().__init__(
+            FieldModulationEnvironmentConfig(**config),
+            None,
+            get_communicator(communicator),
+        )
 
     def run(self):
         print("Starting environment")
@@ -64,14 +81,15 @@ class FieldModulationEnvironment(Environment):
 
 
 def spawn_environment(
-        class_name: str,
-        params: dict,
+    init_config: ProcessInitConfig,
 ):
-    # """
-    # This method is the entrypoint for the environment process
-    # """
-    print(f"Spawn {class_name} environment!")
-    environment_class: type[Environment] = globals()[class_name]
-    environment: Environment = environment_class(**params)
-
+    """
+    This method is the entrypoint for the environment process
+    """
+    print(f"Spawn {init_config.class_name} environment {init_config.worker}!")
+    environment_class: type[Environment] = globals()[init_config.class_name]
+    assert issubclass(
+        environment_class, Environment
+    ), f"Environment [{init_config.class_name}] was not found"
+    environment: Environment = environment_class(**init_config.params)
     environment.run()
