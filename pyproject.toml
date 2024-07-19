@@ -1,4 +1,5 @@
 [tool.poetry]
+package-mode = false
 name = "multi-agent-framework"
 version = "1.0.0"
 description = ""
@@ -15,6 +16,10 @@ torch = "^2.2.2"
 mayavi = "^4.8.1"
 redis = "^5.0.7"
 pydantic = "^2.8.2"
+ipykernel = "^6.29.5"
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
 
 [build-system]
 requires = ["poetry-core"]

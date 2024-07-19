@@ -1,6 +1,8 @@
 import glob
 import os.path
 import pickle
+from os import listdir
+from os.path import isfile
 
 import utils
 
@@ -32,13 +34,13 @@ def store(experiment_dir: str, logger: str, content: dict):
         pickle.dump(content, f)
 
 
-def list_files(experiment_dir, logger: str):
+def list_files(experiment_dir, logger: str) -> list[str]:
     dir_path: str = os.path.join(
         DATA_DIR,
         experiment_dir,
         logger
     )
-    return glob.glob(dir_path)
+    return [f for f in listdir(dir_path) if isfile(os.path.join(dir_path, f))]
 
 
 def load(experiment_dir: str, logger: str, file_name: str) -> object:

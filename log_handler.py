@@ -73,7 +73,7 @@ class PositionLogger(LogHandler):
                 mlab.close(all=True)
 
         self.scene: Scene = mlab.figure(
-            "PositionLogger", bgcolor=(1, 1, 1), fgcolor=(0, 0, 0), size=(800, 600)
+            self.__class__.__name__, bgcolor=(1, 1, 1), fgcolor=(0, 0, 0), size=(800, 600)
         )
 
         mlab.clf()
