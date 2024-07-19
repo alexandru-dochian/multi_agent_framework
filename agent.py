@@ -181,7 +181,7 @@ class CFDrone2D(Agent):
 
         print(f"Initializing [{self.hex_address}]...")
         with SyncCrazyflie(
-                self.config.agent_id, Crazyflie(rw_cache=f"./cache_{self.hex_address}")
+                self.config.agent_id, Crazyflie(rw_cache=f"./cache/{self.hex_address}")
         ) as scf:
             scf.wait_for_params()
             ...
