@@ -20,7 +20,6 @@ detect_os() {
 setup_ubuntu() {
   echo "Setting up for Ubuntu..."
   python3 -m pip install --upgrade pip
-
   echo "Install python3.11"
 
   sudo add-apt-repository ppa:deadsnakes/ppa -y
@@ -30,6 +29,7 @@ setup_ubuntu() {
   echo "Install poetry"
   #  https://python-poetry.org/docs/#installing-with-the-official-installer
   curl -sSL https://install.python-poetry.org | python3 -
+  pip install poetry-plugin-export
   poetry env use 3.11
   poetry shell
   poetry install
