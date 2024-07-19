@@ -155,7 +155,7 @@
       "params": {
         "config": {
           "experiment_dir": "default",
-          "gui_enabled": true
+          "gui_enabled": "true"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -170,7 +170,7 @@
           "experiment_dir": "default",
           "agent_id": "X",
 
-          "gui_enabled": true
+          "gui_enabled": "true"
         },
         "communicator": {
           "class_name": "RedisCommunicator"

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 detect_os() {
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     source /etc/os-release
@@ -29,6 +31,7 @@ setup_ubuntu() {
   #  https://python-poetry.org/docs/#installing-with-the-official-installer
   curl -sSL https://install.python-poetry.org | python3 -
   poetry env use 3.11
+  poetry shell
   poetry install
 
   echo "Install crazyflie-lib-python for crazyflie drones"
@@ -36,15 +39,13 @@ setup_ubuntu() {
   cd crazyflie-lib-python && pip install -e . && cd ..
   python3 -m pip install cfclient
 
-  poetry shell
-
   echo "Install pyqt5 for mayavi rendering"
   python3 -m pip install pyqt5
 
   # USB permissions for Crazyradio dongle
   # https://www.bitcraze.io/documentation/repository/crazyflie-lib-python/master/installation/usb_permissions/
   sudo groupadd plugdev
-  sudo usermod -a -G plugdev $USER
+  sudo usermod -a -G plugdev "$USER"
 
   # Create and write the udev rules to /etc/udev/rules.d/99-bitcraze.rules
 cat <<EOF | sudo tee /etc/udev/rules.d/99-bitcraze.rules > /dev/null
