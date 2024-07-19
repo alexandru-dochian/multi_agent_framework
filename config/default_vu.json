@@ -4,7 +4,8 @@
       "class_name": "RedisCommunicator"
     }
   ],
-  "environments": [],
+  "environments": [
+  ],
   "agents": [
     {
       "worker": "Thread",
@@ -77,6 +78,39 @@
       "class_name": "CFDrone2D",
       "params": {
         "config": {
+          "agent_id": "radio://0/100/2M/E7E7E7E704",
+          "clock_freq": 10,
+          "default_height": 0.6,
+          "max_vel": 0.5,
+          "log_variables": [
+            "stateEstimate.x",
+            "stateEstimate.y",
+            "stateEstimate.z"
+          ],
+          "log_interval_ms": 200,
+          "total_time": 60
+        },
+        "controller": {
+          "class_name": "GoToPointController",
+          "params": {
+            "config": {
+              "target_position": {
+                "x": -2.5,
+                "y": -1
+              }
+            }
+          }
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    },
+    {
+      "worker": "Thread",
+      "class_name": "CFDrone2D",
+      "params": {
+        "config": {
           "agent_id": "radio://0/100/2M/E7E7E7E70A",
           "clock_freq": 10,
           "default_height": 0.6,
@@ -110,7 +144,7 @@
       "class_name": "CFDrone2D",
       "params": {
         "config": {
-          "agent_id": "radio://0/100/2M/E7E7E7E704",
+          "agent_id": "radio://0/100/2M/E7E7E7E706",
           "clock_freq": 10,
           "default_height": 0.6,
           "max_vel": 0.5,
@@ -123,15 +157,7 @@
           "total_time": 60
         },
         "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": -2.5,
-                "y": -1
-              }
-            }
-          }
+          "class_name": "KeyboardController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -139,6 +165,34 @@
       }
     }
   ],
-  "loggers": [
+  "log_handlers": [
+    {
+      "worker": "Process",
+      "class_name": "PositionLogger",
+      "params": {
+        "config": {
+          "experiment_dir": "default_vu",
+          "gui_enabled": true,
+          "delay": 100
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    },
+    {
+      "worker": "Process",
+      "class_name": "FieldStateLogger",
+      "params": {
+        "config": {
+          "experiment_dir": "default_vu",
+          "agent_id": "radio://0/100/2M/E7E7E7E706",
+          "gui_enabled": true
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    }
   ]
 }

@@ -211,6 +211,9 @@ class CFDrone2D(Agent):
             y=data["stateEstimate.y"],
             z=data["stateEstimate.z"],
         )
+        self.communicator.broadcast_state(
+            self.config.agent_id, self.state
+        )
 
     def control_loop(self, scf):
         print(f"CFDrone2D {self.hex_address} starts!")
@@ -234,9 +237,6 @@ class CFDrone2D(Agent):
                 duration: float = 1 / self.config.clock_freq
                 time.sleep(duration)
                 spent_time += duration
-                print(
-                    f"current_position = {self.state.position} | action = [{action}] command = {command}"
-                )
 
         print(f"CFAgent {self.hex_address} finished!")
 

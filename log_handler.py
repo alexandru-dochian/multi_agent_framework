@@ -55,6 +55,9 @@ class PositionLogger(LogHandler):
                     z_new = []
                     for agent in self.communicator.registered_agents():
                         state: PositionState = self.communicator.get_state(agent)
+                        if state is None or state.position is None:
+                            continue
+
                         x_new.append(state.position.x)
                         y_new.append(state.position.y)
                         z_new.append(state.position.z)
