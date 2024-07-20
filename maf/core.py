@@ -36,9 +36,13 @@ class Command(ABC):
 
 
 class SimpleAction2D(Action):
+    FRONT_LEFT = "FRONT_LEFT"
     FRONT = "FRONT"
+    FRONT_RIGHT = "FRONT_RIGHT"
     RIGHT = "RIGHT"
+    BACK_RIGHT = "BACK_RIGHT"
     BACK = "BACK"
+    BACK_LEFT = "BACK_LEFT"
     LEFT = "LEFT"
     STOP = "STOP"
 

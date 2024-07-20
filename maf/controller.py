@@ -1,3 +1,4 @@
+import datetime
 from abc import ABC, abstractmethod
 
 import pygame
@@ -78,38 +79,69 @@ class GoToPointController(Controller):
                 return SimpleAction2D.RIGHT
 
 
+class KeyboardControllerConfig(Config):
+    agent_id: str = "Unknown"
+
+
 class KeyboardController(Controller):
-    def __init__(self):
-        super().__init__(None, None)
+    WIDTH = 800
+    HEIGHT = 600
+
+    def __init__(self, config: dict | None = None):
+        super().__init__(KeyboardControllerConfig(**config) if config else KeyboardControllerConfig(), None)
         self.last_action: SimpleAction2D = SimpleAction2D.STOP
+        self.pressed_keys: set[int] = set()
+
         pygame.init()
-        pygame.display.set_mode((800, 600))
+        pygame.time.delay(500)  # ms
+        pygame.display.set_caption(f"{self.__class__.__name__} for agent [{self.config.agent_id}]")
+        self.display_surface = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        self.font = pygame.font.Font('freesansbold.ttf', 32)
 
     def predict(self) -> SimpleAction2D:
-        events = pygame.event.get()
-        for event in events:
+        for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    self.last_action = SimpleAction2D.FRONT
-                    break
+                self.pressed_keys.add(event.key)
+            elif event.type == pygame.KEYUP:
+                self.pressed_keys.discard(event.key)
 
-                if event.key == pygame.K_DOWN:
-                    self.last_action = SimpleAction2D.BACK
-                    break
+        if pygame.K_SPACE in self.pressed_keys:
+            self.last_action = SimpleAction2D.STOP
+        else:
+            if {pygame.K_UP, pygame.K_LEFT}.issubset(self.pressed_keys):
+                self.last_action = SimpleAction2D.FRONT_LEFT
+            elif {pygame.K_UP, pygame.K_RIGHT}.issubset(self.pressed_keys):
+                self.last_action = SimpleAction2D.FRONT_RIGHT
+            elif {pygame.K_DOWN, pygame.K_RIGHT}.issubset(self.pressed_keys):
+                self.last_action = SimpleAction2D.BACK_RIGHT
+            elif {pygame.K_DOWN, pygame.K_LEFT}.issubset(self.pressed_keys):
+                self.last_action = SimpleAction2D.BACK_LEFT
+            elif pygame.K_UP in self.pressed_keys:
+                self.last_action = SimpleAction2D.FRONT
+            elif pygame.K_RIGHT in self.pressed_keys:
+                self.last_action = SimpleAction2D.RIGHT
+            elif pygame.K_DOWN in self.pressed_keys:
+                self.last_action = SimpleAction2D.BACK
+            elif pygame.K_LEFT in self.pressed_keys:
+                self.last_action = SimpleAction2D.LEFT
 
-                if event.key == pygame.K_LEFT:
-                    self.last_action = SimpleAction2D.LEFT
-                    break
-
-                if event.key == pygame.K_RIGHT:
-                    self.last_action = SimpleAction2D.RIGHT
-                    break
-
-                if event.key == pygame.K_SPACE:
-                    self.last_action = SimpleAction2D.STOP
-                    break
-
+        self.update_display()
         return self.last_action
+
+    def update_display(self):
+        self.display_surface.fill((0, 0, 0))
+        self.display_text_at_pos(self.last_action, (self.WIDTH // 2, self.HEIGHT // 2))
+        self.display_text_at_pos(f"[{str(datetime.datetime.now())}]", (self.WIDTH // 2, self.HEIGHT // 4))
+        pygame.display.update()
+
+    def display_text_at_pos(self, text: str, pos: tuple):
+        green = (0, 255, 0)
+        blue = (0, 0, 128)
+
+        text = self.font.render(text, True, green, blue)
+        text_rect = text.get_rect()
+        text_rect.center = pos
+        self.display_surface.blit(text, text_rect)
 
     def set_state(self, state: State):
         pass

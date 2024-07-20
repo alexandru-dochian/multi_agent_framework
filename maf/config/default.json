@@ -132,7 +132,12 @@
           "total_time": 60
         },
         "controller": {
-          "class_name": "KeyboardController"
+          "class_name": "KeyboardController",
+          "params": {
+            "config": {
+              "agent_id": "X"
+            }
+          }
         },
         "communicator": {
           "class_name": "RedisCommunicator"

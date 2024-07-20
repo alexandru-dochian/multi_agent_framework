@@ -117,16 +117,16 @@ class VirtualDrone2D(Agent):
         logging.info(f"Finished [{self.config.agent_id}]!")
 
     @staticmethod
-    def apply_distribution(field, position, sigma=10, amplitude=0.2, add=True):
+    def apply_distribution(field, position, sigma=10, amplitude=0.2, operation='add'):
         """
         Apply a Gaussian distribution around a given position on a 2D tensor.
 
         Args:
-        - tensor (np.ndarray): Input 2D array representing the map.
+        - field (np.ndarray): Input 2D array representing the map.
         - position (tuple): Position (x, y) where the distribution will be centered.
         - sigma (float): Standard deviation of the Gaussian distribution.
         - amplitude (float): Amplitude of the Gaussian distribution.
-        - add (bool): If True, add the Gaussian to the tensor, else subtract it.
+        - operation (str): Operation type ('add', 'subtract', 'replace').
 
         Returns:
         - np.ndarray: Modified tensor with the Gaussian distribution applied.
@@ -138,10 +138,17 @@ class VirtualDrone2D(Agent):
         gaussian = amplitude * np.exp(
             -((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma ** 2)
         )
-        if add:
+
+        if operation == 'add':
             return field + gaussian
-        else:
+        elif operation == 'subtract':
             return field - gaussian
+        elif operation == 'replace':
+            mask = gaussian > 0
+            field[mask] = gaussian[mask]
+            return field
+        else:
+            raise ValueError("Invalid operation type. Use 'add', 'subtract', or 'replace'.")
 
     @staticmethod
     def map_to_tensor_space(
@@ -182,36 +189,52 @@ class VirtualDrone2D(Agent):
             )
             others.append([other_agent_state.position.x, other_agent_state.position.y])
 
-        others: np.array = np.array(others)
-        field_points: np.array = self.map_to_tensor_space(
-            others, current, self.field_size, real_limit
+        neighbouring_points: np.array = self.map_to_tensor_space(
+            np.array(others), current, self.field_size, real_limit
         )
 
-        # new_field: np.array = old_state.field.data
-        new_field: np.array = np.zeros(self.field_size)
+        reward_points: np.array = self.map_to_tensor_space(
+            np.array([[0, 0]]), current, self.field_size, real_limit
+        )
 
+        new_field: np.array = np.zeros(self.field_size)
         if new_field is not None:
-            for field_point in field_points:
-                new_field = self.apply_distribution(new_field, field_point)
+            for field_point in neighbouring_points:
+                new_field = self.apply_distribution(new_field, field_point, operation='subtract')
+
+            for reward_point in reward_points:
+                new_field = self.apply_distribution(new_field, reward_point, sigma=20, amplitude=0.5, operation='add')
 
         return FieldState(position=new_position, field=Field(data=new_field))
 
     @staticmethod
     def action_to_command(action: SimpleAction2D) -> VelocityCommand2D:
+        if action == SimpleAction2D.FRONT_LEFT:
+            return VelocityCommand2D(1, 1)
+
         if action == SimpleAction2D.FRONT:
             return VelocityCommand2D(1, 0)
 
-        if action == SimpleAction2D.BACK:
-            return VelocityCommand2D(-1, 0)
-
-        if action == SimpleAction2D.LEFT:
-            return VelocityCommand2D(0, 1)
+        if action == SimpleAction2D.FRONT_RIGHT:
+            return VelocityCommand2D(1, -1)
 
         if action == SimpleAction2D.RIGHT:
             return VelocityCommand2D(0, -1)
 
+        if action == SimpleAction2D.BACK_RIGHT:
+            return VelocityCommand2D(-1, -1)
+
+        if action == SimpleAction2D.BACK:
+            return VelocityCommand2D(-1, 0)
+
+        if action == SimpleAction2D.BACK_LEFT:
+            return VelocityCommand2D(-1, 1)
+
+        if action == SimpleAction2D.LEFT:
+            return VelocityCommand2D(0, 1)
+
         if action == SimpleAction2D.STOP:
-            return VelocityCommand2D(vel_x=0, vel_y=0)
+            return VelocityCommand2D(0, 0)
 
 
 class CFDrone2DConfig(Config):
@@ -319,20 +342,32 @@ class CFDrone2D(Agent):
 
     @staticmethod
     def action_to_command(action: SimpleAction2D) -> VelocityCommand2D:
+        if action == SimpleAction2D.FRONT_LEFT:
+            return VelocityCommand2D(1, 1)
+
         if action == SimpleAction2D.FRONT:
             return VelocityCommand2D(1, 0)
 
-        if action == SimpleAction2D.BACK:
-            return VelocityCommand2D(-1, 0)
-
-        if action == SimpleAction2D.LEFT:
-            return VelocityCommand2D(0, 1)
+        if action == SimpleAction2D.FRONT_RIGHT:
+            return VelocityCommand2D(1, -1)
 
         if action == SimpleAction2D.RIGHT:
             return VelocityCommand2D(0, -1)
 
+        if action == SimpleAction2D.BACK_RIGHT:
+            return VelocityCommand2D(-1, -1)
+
+        if action == SimpleAction2D.BACK:
+            return VelocityCommand2D(-1, 0)
+
+        if action == SimpleAction2D.BACK_LEFT:
+            return VelocityCommand2D(-1, 1)
+
+        if action == SimpleAction2D.LEFT:
+            return VelocityCommand2D(0, 1)
+
         if action == SimpleAction2D.STOP:
-            return VelocityCommand2D(vel_x=0, vel_y=0)
+            return VelocityCommand2D(0, 0)
 
 
 def spawn_agent(init_config: ProcessInitConfig):
