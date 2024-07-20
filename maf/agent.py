@@ -1,3 +1,4 @@
+import logging
 import time
 from abc import ABC, abstractmethod
 
@@ -6,14 +7,15 @@ from threading import Event
 import re
 
 import cflib.crtp
+import numpy as np
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.positioning.motion_commander import MotionCommander
 
-from communicator import Communicator, get_communicator
-from controller import get_controller, Controller
-from core import (
+from maf.communicator import Communicator, get_communicator
+from maf.controller import get_controller, Controller
+from maf.core import (
     Config,
     FieldState,
     Position,
@@ -23,6 +25,8 @@ from core import (
     ProcessInitConfig,
     State,
     Command,
+    PositionState,
+    Field,
 )
 
 
@@ -64,27 +68,34 @@ class VirtualDrone2DConfig(Config):
 
 class VirtualDrone2D(Agent):
     config: VirtualDrone2DConfig
-    state: State
+    state: FieldState
     controller: Controller
     communicator: Communicator
+
+    # TODO config
+    field_size: list[int] = [84, 84]
 
     def __init__(self, config: dict, controller: dict, communicator: dict):
         super().__init__(
             VirtualDrone2DConfig(**config),
-            None,
+            FieldState(),
             get_controller(controller),
             get_communicator(communicator),
         )
 
     def run(self):
-        print(f"Starting [{self.config.agent_id}]!")
+        logging.info(f"Starting [{self.config.agent_id}]!")
 
         # register on communicator
         self.communicator.register_agent(self.config.agent_id)
 
         # register initial state
         self.communicator.broadcast_state(
-            self.config.agent_id, FieldState(position=self.config.start_position)
+            self.config.agent_id,
+            FieldState(
+                position=self.config.start_position,
+                field=Field(data=np.zeros(self.field_size)),
+            ),
         )
 
         spent_time = 0
@@ -103,7 +114,49 @@ class VirtualDrone2D(Agent):
             time.sleep(duration)
             spent_time += duration
 
-        print(f"Finished [{self.config.agent_id}]!")
+        logging.info(f"Finished [{self.config.agent_id}]!")
+
+    @staticmethod
+    def apply_distribution(field, position, sigma=10, amplitude=0.2, add=True):
+        """
+        Apply a Gaussian distribution around a given position on a 2D tensor.
+
+        Args:
+        - tensor (np.ndarray): Input 2D array representing the map.
+        - position (tuple): Position (x, y) where the distribution will be centered.
+        - sigma (float): Standard deviation of the Gaussian distribution.
+        - amplitude (float): Amplitude of the Gaussian distribution.
+        - add (bool): If True, add the Gaussian to the tensor, else subtract it.
+
+        Returns:
+        - np.ndarray: Modified tensor with the Gaussian distribution applied.
+        """
+        x, y = position
+        grid_x, grid_y = np.meshgrid(
+            np.arange(field.shape[0]), np.arange(field.shape[1]), indexing="ij"
+        )
+        gaussian = amplitude * np.exp(
+            -((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma ** 2)
+        )
+        if add:
+            return field + gaussian
+        else:
+            return field - gaussian
+
+    @staticmethod
+    def map_to_tensor_space(
+            points: np.array, center: tuple, tensor_size: tuple, limit_range
+    ):
+        x_center, y_center = center
+        tensor_x, tensor_y = tensor_size
+        scale_x = tensor_x / (2 * (limit_range[1] - limit_range[0]))
+        scale_y = tensor_y / (2 * (limit_range[1] - limit_range[0]))
+
+        tensor_points = np.ones_like(points)
+        tensor_points[:, 0] = (points[:, 0] - x_center) * scale_x + tensor_x // 2
+        tensor_points[:, 1] = (points[:, 1] - y_center) * scale_y + tensor_y // 2
+
+        return tensor_points
 
     def compute_new_state(
             self, old_state: FieldState, command: VelocityCommand2D
@@ -115,7 +168,33 @@ class VirtualDrone2D(Agent):
             y=old_position.y + command.vel_y * duration,
             z=old_position.z,
         )
-        return FieldState(position=new_position, field=old_state.field)
+
+        current: list = [old_state.position.x, old_state.position.x]
+        others: list = []
+        real_limit: list = [-1, 1]
+        for other_agent_id in self.communicator.registered_agents():
+            if other_agent_id == self.config.agent_id:
+                # we are interested only in other agents
+                continue
+
+            other_agent_state: PositionState = self.communicator.get_state(
+                other_agent_id
+            )
+            others.append([other_agent_state.position.x, other_agent_state.position.y])
+
+        others: np.array = np.array(others)
+        field_points: np.array = self.map_to_tensor_space(
+            others, current, self.field_size, real_limit
+        )
+
+        # new_field: np.array = old_state.field.data
+        new_field: np.array = np.zeros(self.field_size)
+
+        if new_field is not None:
+            for field_point in field_points:
+                new_field = self.apply_distribution(new_field, field_point)
+
+        return FieldState(position=new_position, field=Field(data=new_field))
 
     @staticmethod
     def action_to_command(action: SimpleAction2D) -> VelocityCommand2D:
@@ -172,14 +251,14 @@ class CFDrone2D(Agent):
     def run(self):
         def param_deck_flow_anon(_, value_str):
             value = int(value_str)
-            print(value)
+            logging.info(value)
             if value:
                 self.deck_attached_event.set()
-                print(f"CFDrone2D [{self.hex_address}] | Deck flow is attached!")
+                logging.info(f"CFDrone2D [{self.hex_address}] | Deck flow is attached!")
             else:
-                print(f"CFDrone2D [{self.hex_address}] | Deck flow is NOT attached!")
+                logging.info(f"CFDrone2D [{self.hex_address}] | Deck flow is NOT attached!")
 
-        print(f"Initializing [{self.hex_address}]...")
+        logging.info(f"Initializing [{self.hex_address}]...")
         with SyncCrazyflie(
                 self.config.agent_id, Crazyflie(rw_cache=f"./cache/{self.hex_address}")
         ) as scf:
@@ -211,16 +290,14 @@ class CFDrone2D(Agent):
             y=data["stateEstimate.y"],
             z=data["stateEstimate.z"],
         )
-        self.communicator.broadcast_state(
-            self.config.agent_id, self.state
-        )
+        self.communicator.broadcast_state(self.config.agent_id, self.state)
 
     def control_loop(self, scf):
-        print(f"CFDrone2D {self.hex_address} starts!")
+        logging.info(f"CFDrone2D {self.hex_address} starts!")
         with MotionCommander(scf, default_height=self.config.default_height) as mc:
-            print(f"CFDrone2D {self.hex_address} | Taking off!")
+            logging.info(f"CFDrone2D {self.hex_address} | Taking off!")
             time.sleep(2)  # necessary for taking-off
-            print(f"CFDrone2D {self.hex_address} | Spawned | in air!")
+            logging.info(f"CFDrone2D {self.hex_address} | Spawned | in air!")
 
             # register on communicator
             self.communicator.register_agent(self.config.agent_id)
@@ -238,7 +315,7 @@ class CFDrone2D(Agent):
                 time.sleep(duration)
                 spent_time += duration
 
-        print(f"CFAgent {self.hex_address} finished!")
+        logging.info(f"CFAgent {self.hex_address} finished!")
 
     @staticmethod
     def action_to_command(action: SimpleAction2D) -> VelocityCommand2D:
@@ -262,7 +339,7 @@ def spawn_agent(init_config: ProcessInitConfig):
     """
     This method is the entrypoint for the agent process
     """
-    print(f"Spawn {init_config.class_name} agent {init_config.worker}!")
+    logging.info(f"Spawn {init_config.class_name} agent {init_config.worker}!")
     agent_class: type[Agent] = globals()[init_config.class_name]
     assert issubclass(
         agent_class, Agent

@@ -132,15 +132,7 @@
           "total_time": 60
         },
         "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": 0,
-                "y": 0
-              }
-            }
-          }
+          "class_name": "KeyboardController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -169,7 +161,6 @@
         "config": {
           "experiment_dir": "default",
           "agent_id": "X",
-
           "gui_enabled": "true"
         },
         "communicator": {

@@ -34,13 +34,13 @@ setup_ubuntu() {
   poetry shell
   poetry install
 
+  echo "Install pyqt5 for mayavi rendering"
+  python3 -m pip install pyqt5
+
   echo "Install crazyflie-lib-python for crazyflie drones"
   git clone https://github.com/bitcraze/crazyflie-lib-python
   cd crazyflie-lib-python && pip install -e . && cd ..
   python3 -m pip install cfclient
-
-  echo "Install pyqt5 for mayavi rendering"
-  python3 -m pip install pyqt5
 
   # USB permissions for Crazyradio dongle
   # https://www.bitcraze.io/documentation/repository/crazyflie-lib-python/master/installation/usb_permissions/

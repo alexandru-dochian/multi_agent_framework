@@ -32,4 +32,4 @@ python3 main.py new_config.json
 
 ### On-the-edge deployment of crazyflie drones
 
-![DevelopmentLayer](static-resources/DevelopmentLayer.png)
+![DevelopmentLayer](docs/static-resources/DevelopmentLayer.png)

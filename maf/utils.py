@@ -10,19 +10,16 @@ def get_current_time() -> int:
 
 def generate_random_string(length: int = 8) -> str:
     characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for _ in range(length))
+    return "".join(random.choice(characters) for _ in range(length))
 
 
 class DiskUtils:
     @staticmethod
-    def store(path, content, print_content=True):
+    def store(path, content):
         with path.open("wb") as f:
             pickle.dump(content, f)
 
-        if print_content:
-            print("{}\n{}\n".format(path, content))
-
     @staticmethod
     def load(path):
-        with path.open('rb') as file:
+        with path.open("rb") as file:
             return pickle.load(file)

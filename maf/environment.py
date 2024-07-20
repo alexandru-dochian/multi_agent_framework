@@ -1,10 +1,11 @@
+import logging
 import time
 from abc import ABC, abstractmethod
 
 import torch
 
-from communicator import get_communicator
-from core import Config, Position, Communicator, ProcessInitConfig, State
+from maf.core import Config, Position, Communicator, ProcessInitConfig, State
+from maf.communicator import get_communicator
 
 
 class Environment(ABC):
@@ -23,7 +24,7 @@ class Environment(ABC):
 
 
 def apply_distribution(
-    tensor: torch.Tensor, position: Position, sigma=5, amplitude=1, add=True
+        tensor: torch.Tensor, position: Position, sigma=5, amplitude=1, add=True
 ):
     """
     Apply a Gaussian distribution around a given position on a 2D tensor.
@@ -43,7 +44,7 @@ def apply_distribution(
         torch.arange(tensor.size(0)), torch.arange(tensor.size(1))
     )
     gaussian = amplitude * torch.exp(
-        -((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma**2)
+        -((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma ** 2)
     )
     if add:
         return tensor + gaussian
@@ -67,26 +68,26 @@ class FieldModulationEnvironment(Environment):
         )
 
     def run(self):
-        print("Starting environment")
+        logging.info("Starting environment")
 
         while self.communicator.is_active():
-            print("Loop environment")
+            logging.info("Loop environment")
 
             for agent in self.communicator.registered_agents():
-                print(f"Environment: agent = [{agent}]")
+                logging.info(f"Environment: agent = [{agent}]")
 
             time.sleep(1 / self.config.clock_freq)
 
-        print("Finished environment")
+        logging.info("Finished environment")
 
 
 def spawn_environment(
-    init_config: ProcessInitConfig,
+        init_config: ProcessInitConfig,
 ):
     """
     This method is the entrypoint for the environment process
     """
-    print(f"Spawn {init_config.class_name} environment {init_config.worker}!")
+    logging.info(f"Spawn {init_config.class_name} environment {init_config.worker}!")
     environment_class: type[Environment] = globals()[init_config.class_name]
     assert issubclass(
         environment_class, Environment

@@ -1,12 +1,12 @@
+import logging
+
 import numpy as np
 
 from abc import ABC, abstractmethod
 
-import torch
-
-import persistence
-from communicator import Communicator, get_communicator
-from core import ProcessInitConfig, Config, PositionState, FieldState, Field
+from maf.core import ProcessInitConfig, Config, PositionState, FieldState, Field
+from maf.communicator import Communicator, get_communicator
+from maf import persistence
 
 
 class LogHandler(ABC):
@@ -76,7 +76,10 @@ class PositionLogger(LogHandler):
                 mlab.close(all=True)
 
         self.scene: Scene = mlab.figure(
-            self.__class__.__name__, bgcolor=(1, 1, 1), fgcolor=(0, 0, 0), size=(800, 600)
+            self.__class__.__name__,
+            bgcolor=(1, 1, 1),
+            fgcolor=(0, 0, 0),
+            size=(800, 600),
         )
 
         mlab.clf()
@@ -95,10 +98,7 @@ class PositionLogger(LogHandler):
         persistence.store(
             self.config.experiment_dir,
             self.__class__.__name__,
-            {
-                'agent': agent,
-                'state': state
-            }
+            {"agent": agent, "state": state},
         )
 
 
@@ -118,7 +118,9 @@ class FieldStateLogger(LogHandler):
     surface: object
 
     def __init__(self, config: dict, communicator: dict) -> None:
-        super().__init__(FieldStateLoggerConfig(**config), get_communicator(communicator))
+        super().__init__(
+            FieldStateLoggerConfig(**config), get_communicator(communicator)
+        )
 
     def run(self):
         # For some reason mayavi imports need to be at method level
@@ -131,10 +133,15 @@ class FieldStateLogger(LogHandler):
         def anim():
             try:
                 while self.communicator.is_active():
-                    field_state: FieldState = FieldState(
-                        field=Field(data=torch.randn(84, 84))
+                    field_state: FieldState = self.communicator.get_state(
+                        self.config.agent_id
                     )
-                    self.surface.mlab_source.reset(scalars=field_state.field.data.numpy())
+                    if field_state is None:
+                        field_state = FieldState(
+                            field=Field(data=np.random.random((84, 84)))
+                        )
+                    data: np.array = field_state.field.data
+                    self.surface.mlab_source.reset(scalars=data)
                     self.scene.scene.reset_zoom()
                     self.write_to_disk(self.config.agent_id, field_state)
                     yield
@@ -144,11 +151,14 @@ class FieldStateLogger(LogHandler):
                 mlab.close(all=True)
 
         self.scene: Scene = mlab.figure(
-            f"FieldState for [{self.config.agent_id}]", bgcolor=(1, 1, 1), fgcolor=(0, 0, 0), size=(400, 300)
+            f"FieldState for [{self.config.agent_id}]",
+            bgcolor=(1, 1, 1),
+            fgcolor=(0, 0, 0),
+            size=(800, 600),
         )
         mlab.clf()
         mlab.view(0, 180, None, (0, 0, 0))
-        self.surface: Surface = mlab.surf(torch.zeros(84, 84).numpy(), warp_scale="auto")
+        self.surface: Surface = mlab.surf(np.random.random((84, 84)), warp_scale="auto")
         self.animator: Animator = anim()
         mlab.orientation_axes(line_width=1, xlabel="X", ylabel="Y", zlabel="Z")
         mlab.show()
@@ -157,10 +167,7 @@ class FieldStateLogger(LogHandler):
         persistence.store(
             self.config.experiment_dir,
             self.__class__.__name__,
-            {
-                'agent': agent,
-                'state': state
-            }
+            {"agent": agent, "state": state},
         )
 
 
@@ -168,11 +175,11 @@ def spawn_log_handler(init_config: ProcessInitConfig):
     """
     This method is the entrypoint for the logger process
     """
-    print(f"Spawn {init_config.class_name} log handler {init_config.worker}!")
+    logging.info(f"Spawn {init_config.class_name} log handler {init_config.worker}!")
     log_handler_class: type[LogHandler] = globals()[init_config.class_name]
     assert issubclass(
         log_handler_class, LogHandler
     ), f"LogHandler [{init_config.class_name}] was not found"
     log_handler: LogHandler = log_handler_class(**init_config.params)
     log_handler.run()
-    print(f"Finalized {init_config.class_name} log handler {init_config.worker}!")
+    logging.info(f"Finalized {init_config.class_name} log handler {init_config.worker}!")

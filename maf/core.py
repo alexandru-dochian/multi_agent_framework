@@ -1,12 +1,26 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 
+import numpy as np
 import pydantic
-import torch
 
 
 class Config(pydantic.BaseModel, ABC):
     ...
+
+
+class Worker(str, Enum):
+    Process = "Process"
+    Thread = "Thread"
+
+
+class ObjectInitConfig(Config):
+    class_name: str
+    params: dict = {}
+
+
+class ProcessInitConfig(ObjectInitConfig):
+    worker: Worker
 
 
 class State(ABC):
@@ -56,7 +70,7 @@ class Position(pydantic.BaseModel):
 
 
 class Field:
-    data: torch.Tensor
+    data: np.array
 
     def __init__(self, data):
         self.data = data
@@ -131,17 +145,3 @@ class Communicator(ABC):
     @abstractmethod
     def get_action(self, agent_id: str) -> Action:
         ...
-
-
-class Worker(str, Enum):
-    Process = "Process"
-    Thread = "Thread"
-
-
-class ObjectInitConfig(Config):
-    class_name: str
-    params: dict = {}
-
-
-class ProcessInitConfig(ObjectInitConfig):
-    worker: Worker

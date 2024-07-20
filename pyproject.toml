@@ -7,7 +7,7 @@ authors = ["Alexandru Dochian <alexandru.dochian@forktex.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 cflib = "^0.1.25.1"
 pygame = "^2.5.2"
 matplotlib = "^3.8.3"
@@ -17,6 +17,7 @@ mayavi = "^4.8.1"
 redis = "^5.0.7"
 pydantic = "^2.8.2"
 ipykernel = "^6.29.5"
+configobj = "^5.0.8"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"

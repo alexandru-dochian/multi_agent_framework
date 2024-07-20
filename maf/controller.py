@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import pygame
 
-from core import (
+from maf.core import (
     Config,
     Position,
     SimpleAction2D,
@@ -42,7 +42,7 @@ class GoToPointController(Controller):
     def __init__(self, config: dict):
         super().__init__(GoToPointControllerConfig(**config), PositionState())
         assert (
-            self.config.target_position is not None
+                self.config.target_position is not None
         ), f"Target position [target_position] must be specified for {self.__class__.__name__}"
 
     def set_state(self, state: PositionState):
