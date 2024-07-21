@@ -18,6 +18,7 @@ redis = "^5.0.7"
 pydantic = "^2.8.2"
 ipykernel = "^6.29.5"
 configobj = "^5.0.8"
+pyqt5 = "^5.15.11"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"

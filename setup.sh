@@ -31,11 +31,8 @@ setup_ubuntu() {
   curl -sSL https://install.python-poetry.org | python3 -
   pip install poetry-plugin-export
   poetry env use 3.11
-  poetry shell
   poetry install
-
-  echo "Install pyqt5 for mayavi rendering"
-  python3 -m pip install pyqt5
+  poetry shell
 
   echo "Install crazyflie-lib-python for crazyflie drones"
   git clone https://github.com/bitcraze/crazyflie-lib-python
