@@ -12,7 +12,9 @@ from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.positioning.motion_commander import MotionCommander
+from scipy.ndimage import zoom
 
+from maf import utils
 from maf.communicator import Communicator, get_communicator
 from maf.controller import get_controller, Controller
 from maf.core import (
@@ -37,11 +39,11 @@ class Agent(ABC):
     communicator: Communicator
 
     def __init__(
-            self,
-            config: Config,
-            state: State,
-            controller: Controller,
-            communicator: Communicator,
+        self,
+        config: Config,
+        state: State,
+        controller: Controller,
+        communicator: Communicator,
     ):
         self.config = config
         self.state = state
@@ -62,6 +64,7 @@ class VirtualDrone2DConfig(Config):
     agent_id: str
     clock_freq: int = 5  # hz
     max_vel: float = 0.1  # m/s
+    default_height: float = 0.4  # m
     total_time: int = 60  # seconds
     start_position: Position = Position(x=0, y=0, z=0)
 
@@ -74,6 +77,9 @@ class VirtualDrone2D(Agent):
 
     # TODO config
     field_size: list[int] = [84, 84]
+
+    # TODO Environment
+    field_modulation = np.array([[0, 0], [1, 1], [-1, 1], [1, -1], [-1, -1]])
 
     def __init__(self, config: dict, controller: dict, communicator: dict):
         super().__init__(
@@ -116,57 +122,8 @@ class VirtualDrone2D(Agent):
 
         logging.info(f"Finished [{self.config.agent_id}]!")
 
-    @staticmethod
-    def apply_distribution(field, position, sigma=10, amplitude=0.2, operation='add'):
-        """
-        Apply a Gaussian distribution around a given position on a 2D tensor.
-
-        Args:
-        - field (np.ndarray): Input 2D array representing the map.
-        - position (tuple): Position (x, y) where the distribution will be centered.
-        - sigma (float): Standard deviation of the Gaussian distribution.
-        - amplitude (float): Amplitude of the Gaussian distribution.
-        - operation (str): Operation type ('add', 'subtract', 'replace').
-
-        Returns:
-        - np.ndarray: Modified tensor with the Gaussian distribution applied.
-        """
-        x, y = position
-        grid_x, grid_y = np.meshgrid(
-            np.arange(field.shape[0]), np.arange(field.shape[1]), indexing="ij"
-        )
-        gaussian = amplitude * np.exp(
-            -((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma ** 2)
-        )
-
-        if operation == 'add':
-            return field + gaussian
-        elif operation == 'subtract':
-            return field - gaussian
-        elif operation == 'replace':
-            mask = gaussian > 0
-            field[mask] = gaussian[mask]
-            return field
-        else:
-            raise ValueError("Invalid operation type. Use 'add', 'subtract', or 'replace'.")
-
-    @staticmethod
-    def map_to_tensor_space(
-            points: np.array, center: tuple, tensor_size: tuple, limit_range
-    ):
-        x_center, y_center = center
-        tensor_x, tensor_y = tensor_size
-        scale_x = tensor_x / (2 * (limit_range[1] - limit_range[0]))
-        scale_y = tensor_y / (2 * (limit_range[1] - limit_range[0]))
-
-        tensor_points = np.ones_like(points)
-        tensor_points[:, 0] = (points[:, 0] - x_center) * scale_x + tensor_x // 2
-        tensor_points[:, 1] = (points[:, 1] - y_center) * scale_y + tensor_y // 2
-
-        return tensor_points
-
     def compute_new_state(
-            self, old_state: FieldState, command: VelocityCommand2D
+        self, old_state: FieldState, command: VelocityCommand2D
     ) -> FieldState:
         duration: float = 1 / self.config.clock_freq
         old_position: Position = old_state.position
@@ -176,9 +133,25 @@ class VirtualDrone2D(Agent):
             z=old_position.z,
         )
 
-        current: list = [old_state.position.x, old_state.position.x]
+        factor_vicinity = 1
+        core_vicinity_limit = np.array([2, 2])
+        vicinity_limit = core_vicinity_limit * factor_vicinity
+
+        sigma_scale = 15 / factor_vicinity
+        amplitude = 1 / factor_vicinity
+
+        center_point: list = np.array([new_position.x, new_position.y])
+        # Find neighboring points within the box limit of vicinity_limit
+        x_min, x_max = (
+            center_point[0] - vicinity_limit[0],
+            center_point[0] + vicinity_limit[0],
+        )
+        y_min, y_max = (
+            center_point[1] - vicinity_limit[1],
+            center_point[1] + vicinity_limit[1],
+        )
+
         others: list = []
-        real_limit: list = [-1, 1]
         for other_agent_id in self.communicator.registered_agents():
             if other_agent_id == self.config.agent_id:
                 # we are interested only in other agents
@@ -188,24 +161,133 @@ class VirtualDrone2D(Agent):
                 other_agent_id
             )
             others.append([other_agent_state.position.x, other_agent_state.position.y])
+        others = np.array(others)
+        if len(others) > 0:
+            filtered_others = others[
+                (others[:, 0] >= x_min)
+                & (others[:, 0] <= x_max)
+                & (others[:, 1] >= y_min)
+                & (others[:, 1] <= y_max)
+            ]
+        else:
+            filtered_others = others
 
-        neighbouring_points: np.array = self.map_to_tensor_space(
-            np.array(others), current, self.field_size, real_limit
+        # Step 4: Project the points onto a centered torch.Tensor of shape (tensor_size[0], tensor_size[1])
+        field: np.array = np.zeros(self.field_size)
+
+        # Apply Gaussian to each neighboring point, excluding the center point
+        for point in filtered_others:
+            if np.all(point == center_point):
+                continue
+
+            x_tensor, y_tensor = self.to_tensor_space(
+                point, center_point, self.field_size, vicinity_limit
+            )
+
+            # Ensure the indices are within the bounds of the tensor
+            if (
+                0 <= x_tensor < self.field_size[1]
+                and 0 <= y_tensor < self.field_size[0]
+            ):
+                field = utils.apply_distribution(
+                    field,
+                    (x_tensor, y_tensor),
+                    sigma=sigma_scale,
+                    amplitude=amplitude,
+                    operation="subtract",
+                )
+            else:
+                print(
+                    f"Point {point} projected to out-of-bounds tensor coordinates ({x_tensor}, {y_tensor})"
+                )
+
+        def rotate_points(points, theta, center):
+            # Convert theta to radians
+            theta_rad = np.radians(theta)
+
+            # Define the rotation matrix
+            rotation_matrix = np.array(
+                [
+                    [np.cos(theta_rad), -np.sin(theta_rad)],
+                    [np.sin(theta_rad), np.cos(theta_rad)],
+                ]
+            )
+
+            # Translate points to the origin (subtract the center)
+            translated_points = points - center
+
+            # Rotate each point
+            rotated_points = np.dot(translated_points, rotation_matrix.T)
+
+            # Translate points back to the original center
+            rotated_points += center
+
+            return rotated_points
+
+        theta = 1
+        rot_center = [0.5, 0.5]
+        self.field_modulation = rotate_points(self.field_modulation, theta, rot_center)
+        field_modulation = self.field_modulation
+
+        field_modulation_filtered = field_modulation[
+            (field_modulation[:, 0] >= x_min)
+            & (field_modulation[:, 0] <= x_max)
+            & (field_modulation[:, 1] >= y_min)
+            & (field_modulation[:, 1] <= y_max)
+        ]
+        # Apply field_modulation
+        for point in field_modulation_filtered:
+            x_tensor, y_tensor = self.to_tensor_space(
+                point, center_point, self.field_size, vicinity_limit
+            )
+
+            # Ensure the indices are within the bounds of the tensor
+            if (
+                0 <= x_tensor < self.field_size[1]
+                and 0 <= y_tensor < self.field_size[0]
+            ):
+                field = utils.apply_distribution(
+                    field,
+                    (x_tensor, y_tensor),
+                    sigma=sigma_scale / 1.5,
+                    amplitude=amplitude,
+                    operation="add",
+                )
+            else:
+                print(
+                    f"Point {point} projected to out-of-bounds tensor coordinates ({x_tensor}, {y_tensor})"
+                )
+
+        # Clip and resize the tensor
+        clip_size = [self.field_size[0] // 2, self.field_size[1] // 2]
+        start_x = self.field_size[1] // 2 - clip_size[1] // 2
+        start_y = self.field_size[0] // 2 - clip_size[0] // 2
+
+        clipped_tensor = field[
+            start_y : start_y + clip_size[0], start_x : start_x + clip_size[1]
+        ]
+        rescaled_tensor = zoom(
+            input=clipped_tensor,
+            zoom=(self.field_size[0] / clip_size[0], self.field_size[1] / clip_size[1]),
+            order=1,
         )
 
-        reward_points: np.array = self.map_to_tensor_space(
-            np.array([[0, 0]]), current, self.field_size, real_limit
-        )
+        return FieldState(position=new_position, field=Field(data=rescaled_tensor))
 
-        new_field: np.array = np.zeros(self.field_size)
-        if new_field is not None:
-            for field_point in neighbouring_points:
-                new_field = self.apply_distribution(new_field, field_point, operation='subtract')
-
-            for reward_point in reward_points:
-                new_field = self.apply_distribution(new_field, reward_point, sigma=20, amplitude=0.5, operation='add')
-
-        return FieldState(position=new_position, field=Field(data=new_field))
+    @staticmethod
+    def to_tensor_space(point, center_point, tensor_size, vicinity_limit):
+        x, y = point
+        cx, cy = center_point
+        # Normalize to [0, 1] range first
+        x_normalized = (x - (cx - vicinity_limit[0])) / (2 * vicinity_limit[0])
+        y_normalized = (y - (cy - vicinity_limit[1])) / (2 * vicinity_limit[1])
+        # Convert to tensor space indices
+        x_tensor = int(round(x_normalized * (tensor_size[1] - 1)))
+        y_tensor = int(round(y_normalized * (tensor_size[0] - 1)))
+        # Clamp indices to ensure they are within bounds
+        x_tensor = np.clip(x_tensor, 0, tensor_size[1] - 1)
+        y_tensor = np.clip(y_tensor, 0, tensor_size[0] - 1)
+        return x_tensor, y_tensor
 
     @staticmethod
     def action_to_command(action: SimpleAction2D) -> VelocityCommand2D:
@@ -240,7 +322,7 @@ class VirtualDrone2D(Agent):
 class CFDrone2DConfig(Config):
     agent_id: str
     clock_freq: int = 5  # hz
-    default_height: float = 0.4
+    default_height: float = 0.4  # m
     max_vel: float = 0.1  # m/s
     log_variables: list[str]
     log_interval_ms: int = 20  # ms
@@ -255,6 +337,10 @@ class CFDrone2D(Agent):
 
     hex_address: str
     loco_positioning_deck_attached_event: Event
+    yaw: float
+
+    # TODO config
+    field_size: list[int] = [84, 84]
 
     def __init__(self, config: dict, controller: dict, communicator: dict):
         super().__init__(
@@ -279,11 +365,13 @@ class CFDrone2D(Agent):
                 self.deck_attached_event.set()
                 logging.info(f"CFDrone2D [{self.hex_address}] | Deck flow is attached!")
             else:
-                logging.info(f"CFDrone2D [{self.hex_address}] | Deck flow is NOT attached!")
+                logging.info(
+                    f"CFDrone2D [{self.hex_address}] | Deck flow is NOT attached!"
+                )
 
         logging.info(f"Initializing [{self.hex_address}]...")
         with SyncCrazyflie(
-                self.config.agent_id, Crazyflie(rw_cache=f"./cache/{self.hex_address}")
+            self.config.agent_id, Crazyflie(rw_cache=f"./cache/{self.hex_address}")
         ) as scf:
             scf.wait_for_params()
             ...
@@ -307,12 +395,156 @@ class CFDrone2D(Agent):
             finally:
                 logconf.stop()
 
+    @staticmethod
+    def to_tensor_space(point, center_point, tensor_size, vicinity_limit):
+        x, y = point
+        cx, cy = center_point
+        # Normalize to [0, 1] range first
+        x_normalized = (x - (cx - vicinity_limit[0])) / (2 * vicinity_limit[0])
+        y_normalized = (y - (cy - vicinity_limit[1])) / (2 * vicinity_limit[1])
+        # Convert to tensor space indices
+        x_tensor = int(round(x_normalized * (tensor_size[1] - 1)))
+        y_tensor = int(round(y_normalized * (tensor_size[0] - 1)))
+        # Clamp indices to ensure they are within bounds
+        x_tensor = np.clip(x_tensor, 0, tensor_size[1] - 1)
+        y_tensor = np.clip(y_tensor, 0, tensor_size[0] - 1)
+        return x_tensor, y_tensor
+
     def log_pos_callback(self, timestamp, data, logconf):
-        self.state.position = Position(
+        # https://www.bitcraze.io/documentation/repository/crazyflie-firmware/master/api/logs/
+        self.yaw: float = data["stateEstimate.yaw"]
+
+        new_position: Position = Position(
             x=data["stateEstimate.x"],
             y=data["stateEstimate.y"],
             z=data["stateEstimate.z"],
         )
+
+        factor_vicinity = 1
+        core_vicinity_limit = np.array([1.5, 1.5])
+        vicinity_limit = core_vicinity_limit * factor_vicinity
+
+        sigma_scale = 15 / factor_vicinity
+        amplitude = 1 / factor_vicinity
+
+        current: list = [new_position.x, new_position.y]
+        center_point: list = np.array(current)
+        # Find neighboring points within the box limit of vicinity_limit
+        x_min, x_max = (
+            center_point[0] - vicinity_limit[0],
+            center_point[0] + vicinity_limit[0],
+        )
+        y_min, y_max = (
+            center_point[1] - vicinity_limit[1],
+            center_point[1] + vicinity_limit[1],
+        )
+
+        others: list = []
+        for other_agent_id in self.communicator.registered_agents():
+            if other_agent_id == self.config.agent_id:
+                # we are interested only in other agents
+                continue
+
+            other_agent_state: PositionState = self.communicator.get_state(
+                other_agent_id
+            )
+            others.append([other_agent_state.position.x, other_agent_state.position.y])
+        others = np.array(others)
+        if len(others) > 0:
+            filtered_others = others[
+                (others[:, 0] >= x_min)
+                & (others[:, 0] <= x_max)
+                & (others[:, 1] >= y_min)
+                & (others[:, 1] <= y_max)
+            ]
+        else:
+            filtered_others = others
+
+        # Step 4: Project the points onto a centered torch.Tensor of shape (tensor_size[0], tensor_size[1])
+        field: np.array = np.zeros(self.field_size)
+
+        # Apply Gaussian to each neighboring point, excluding the center point
+        for point in filtered_others:
+            if np.all(point == center_point):
+                continue
+
+            x_tensor, y_tensor = self.to_tensor_space(
+                point, center_point, self.field_size, vicinity_limit
+            )
+
+            # Ensure the indices are within the bounds of the tensor
+            if (
+                0 <= x_tensor < self.field_size[1]
+                and 0 <= y_tensor < self.field_size[0]
+            ):
+                field = utils.apply_distribution(
+                    field,
+                    (x_tensor, y_tensor),
+                    sigma=sigma_scale,
+                    amplitude=amplitude,
+                    operation="subtract",
+                )
+            else:
+                print(
+                    f"Point {point} projected to out-of-bounds tensor coordinates ({x_tensor}, {y_tensor})"
+                )
+
+        # TODO GET FROM ENVIRONMENT
+        field_modulation = np.array(
+            [
+                [0, 0],
+                [0, 1],
+                [1, 0],
+                [1, 1],
+            ]
+        )
+        field_modulation_filtered = field_modulation[
+            (field_modulation[:, 0] >= x_min)
+            & (field_modulation[:, 0] <= x_max)
+            & (field_modulation[:, 1] >= y_min)
+            & (field_modulation[:, 1] <= y_max)
+        ]
+        # Apply field_modulation
+        for point in field_modulation_filtered:
+            x_tensor, y_tensor = self.to_tensor_space(
+                point, center_point, self.field_size, vicinity_limit
+            )
+
+            # Ensure the indices are within the bounds of the tensor
+            if (
+                0 <= x_tensor < self.field_size[1]
+                and 0 <= y_tensor < self.field_size[0]
+            ):
+                field = utils.apply_distribution(
+                    field,
+                    (x_tensor, y_tensor),
+                    sigma=sigma_scale / 2,
+                    amplitude=amplitude,
+                    operation="add",
+                )
+            else:
+                print(
+                    f"Point {point} projected to out-of-bounds tensor coordinates ({x_tensor}, {y_tensor})"
+                )
+
+        # Clip and resize the tensor
+        clip_size = [self.field_size[0] // 2, self.field_size[1] // 2]
+        start_x = self.field_size[1] // 2 - clip_size[1] // 2
+        start_y = self.field_size[0] // 2 - clip_size[0] // 2
+
+        clipped_tensor = field[
+            start_y : start_y + clip_size[0], start_x : start_x + clip_size[1]
+        ]
+        rescaled_tensor = zoom(
+            input=clipped_tensor,
+            zoom=(self.field_size[0] / clip_size[0], self.field_size[1] / clip_size[1]),
+            order=1,
+        )
+
+        new_state: FieldState = FieldState(
+            position=new_position, field=Field(data=rescaled_tensor)
+        )
+        self.state = new_state
         self.communicator.broadcast_state(self.config.agent_id, self.state)
 
     def control_loop(self, scf):
@@ -324,16 +556,16 @@ class CFDrone2D(Agent):
 
             # register on communicator
             self.communicator.register_agent(self.config.agent_id)
-
+            print("self.yaw", self.yaw)
             spent_time = 0
             while (
-                    spent_time < self.config.total_time
+                spent_time < self.config.total_time
             ) and self.communicator.is_active():
                 self.controller.set_state(self.state)
                 action: Action = self.controller.predict()
                 command: VelocityCommand2D = self.action_to_command(action)
                 command = command.scale(self.config.max_vel)
-                mc.start_linear_motion(command.vel_x, command.vel_y, 0)
+                mc.start_linear_motion(command.vel_x, command.vel_y, 0, 20)
                 duration: float = 1 / self.config.clock_freq
                 time.sleep(duration)
                 spent_time += duration

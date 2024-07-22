@@ -14,23 +14,23 @@
         "config": {
           "agent_id": "radio://0/100/2M/E7E7E7E707",
           "clock_freq": 10,
-          "default_height": 0.6,
-          "max_vel": 0.5,
+          "default_height": 0.55,
+          "max_vel": 0.35,
           "log_variables": [
             "stateEstimate.x",
             "stateEstimate.y",
             "stateEstimate.z"
           ],
           "log_interval_ms": 200,
-          "total_time": 60
+          "total_time": 600
         },
         "controller": {
           "class_name": "GoToPointController",
           "params": {
             "config": {
               "target_position": {
-                "x": 1.5,
-                "y": 2
+                "x": 0.5,
+                "y": 0.5
               }
             }
           }
@@ -47,23 +47,23 @@
         "config": {
           "agent_id": "radio://0/100/2M/E7E7E7E708",
           "clock_freq": 10,
-          "default_height": 0.6,
-          "max_vel": 0.5,
+          "default_height": 0.55,
+          "max_vel": 0.35,
           "log_variables": [
             "stateEstimate.x",
             "stateEstimate.y",
             "stateEstimate.z"
           ],
           "log_interval_ms": 200,
-          "total_time": 60
+          "total_time": 600
         },
         "controller": {
           "class_name": "GoToPointController",
           "params": {
             "config": {
               "target_position": {
-                "x": 1.5,
-                "y": -1.0
+                "x": 0.5,
+                "y": -0.5
               }
             }
           }
@@ -80,23 +80,23 @@
         "config": {
           "agent_id": "radio://0/100/2M/E7E7E7E704",
           "clock_freq": 10,
-          "default_height": 0.6,
-          "max_vel": 0.5,
+          "default_height": 0.55,
+          "max_vel": 0.35,
           "log_variables": [
             "stateEstimate.x",
             "stateEstimate.y",
             "stateEstimate.z"
           ],
           "log_interval_ms": 200,
-          "total_time": 60
+          "total_time": 600
         },
         "controller": {
           "class_name": "GoToPointController",
           "params": {
             "config": {
               "target_position": {
-                "x": -2.5,
-                "y": -1
+                "x": -0.5,
+                "y": -0.5
               }
             }
           }
@@ -113,23 +113,23 @@
         "config": {
           "agent_id": "radio://0/100/2M/E7E7E7E70A",
           "clock_freq": 10,
-          "default_height": 0.6,
-          "max_vel": 0.5,
+          "default_height": 0.55,
+          "max_vel": 0.35,
           "log_variables": [
             "stateEstimate.x",
             "stateEstimate.y",
             "stateEstimate.z"
           ],
           "log_interval_ms": 200,
-          "total_time": 60
+          "total_time": 600
         },
         "controller": {
           "class_name": "GoToPointController",
           "params": {
             "config": {
               "target_position": {
-                "x": -2.5,
-                "y": 2
+                "x": -0.5,
+                "y": 0.5
               }
             }
           }
@@ -146,18 +146,23 @@
         "config": {
           "agent_id": "radio://0/100/2M/E7E7E7E706",
           "clock_freq": 10,
-          "default_height": 0.6,
-          "max_vel": 0.5,
+          "default_height": 0.55,
+          "max_vel": 0.35,
           "log_variables": [
             "stateEstimate.x",
             "stateEstimate.y",
             "stateEstimate.z"
           ],
           "log_interval_ms": 200,
-          "total_time": 60
+          "total_time": 600
         },
         "controller": {
-          "class_name": "KeyboardController"
+          "class_name": "KeyboardController",
+          "params": {
+            "config": {
+              "agent_id": "radio://0/100/2M/E7E7E7E706"
+            }
+          }
         },
         "communicator": {
           "class_name": "RedisCommunicator"

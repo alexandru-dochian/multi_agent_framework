@@ -65,11 +65,13 @@ class App:
     def start_processes(self):
         try:
             for p in self.processes:
-                logging.info(f'Starting process {p.name}')
+                logging.info(f"Starting process {p.name}")
                 p.start()
-                logging.info(f'Process {p.name} started successfully')
+                logging.info(f"Process {p.name} started successfully")
         except Exception as e:
-            logging.error(f'Error occurred while starting processes: {e}', exc_info=True)
+            logging.error(
+                f"Error occurred while starting processes: {e}", exc_info=True
+            )
 
             # Optionally, you might want to clean up or terminate processes here
 
@@ -82,7 +84,7 @@ class App:
         for p in self.processes:
             try:
                 p.start()
-                logging.info(f'Process {p.name} started successfully')
+                logging.info(f"Process {p.name} started successfully")
             except:
                 logging.exception(f"Process {p.name} failed to start")
 
@@ -93,7 +95,7 @@ class App:
         for p in self.processes:
             try:
                 p.join()
-                logging.info(f'Process {p.name} finished successfully')
+                logging.info(f"Process {p.name} finished successfully")
             except:
                 logging.exception(f"Process {p.name} failed to finish")
 

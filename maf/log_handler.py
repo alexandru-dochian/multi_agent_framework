@@ -90,6 +90,49 @@ class PositionLogger(LogHandler):
             x, y, z, scale_factor=0.1, color=(0, 1, 0)
         )
 
+        # Function to draw the axes
+        def draw_axes():
+            axes_length = 3.0 
+            mlab.plot3d(
+                [0, axes_length], [0, 0], [0, 0], color=(1, 0, 0), tube_radius=0.01
+            )  # X axis in red
+            mlab.plot3d(
+                [0, 0], [0, axes_length], [0, 0], color=(0, 1, 0), tube_radius=0.01
+            )  # Y axis in green
+            mlab.plot3d(
+                [0, 0], [0, 0], [0, axes_length], color=(0, 0, 1), tube_radius=0.01
+            )  # Z axis in blue
+            mlab.plot3d(
+                [-axes_length, 0], [0, 0], [0, 0], color=(1, 0, 0), tube_radius=0.01
+            )  # Negative X axis in red
+            mlab.plot3d(
+                [0, 0], [-axes_length, 0], [0, 0], color=(0, 1, 0), tube_radius=0.01
+            )  # Negative Y axis in green
+
+        # Function to draw the grid on the XY plane in all quadrants
+        def draw_xy_grid(grid_size=3, grid_spacing=1.0):
+            for i in np.arange(-grid_size, grid_size + grid_spacing, grid_spacing):
+                mlab.plot3d(
+                    [-grid_size, grid_size],
+                    [i, i],
+                    [0, 0],
+                    color=(0.7, 0.7, 0.7),
+                    tube_radius=0.005,
+                )  # Horizontal lines
+                mlab.plot3d(
+                    [i, i],
+                    [-grid_size, grid_size],
+                    [0, 0],
+                    color=(0.7, 0.7, 0.7),
+                    tube_radius=0.005,
+                )  # Vertical lines
+
+        # Draw the axes
+        draw_axes()
+
+        # Draw the XY grid in all quadrants
+        draw_xy_grid()
+
         self.animator: Animator = anim()
         mlab.orientation_axes(line_width=1, xlabel="X", ylabel="Y", zlabel="Z")
         mlab.show()
@@ -159,6 +202,27 @@ class FieldStateLogger(LogHandler):
         mlab.clf()
         mlab.view(0, 180, None, (0, 0, 0))
         self.surface: Surface = mlab.surf(np.random.random((84, 84)), warp_scale="auto")
+
+        def draw_axes():
+            axes_length = 42.0
+            mlab.plot3d(
+                [0, axes_length], [0, 0], [0, 0], color=(1, 0, 0), tube_radius=0.1
+            )  # X axis in red
+            mlab.plot3d(
+                [0, 0], [0, axes_length], [0, 0], color=(0, 1, 0), tube_radius=0.1
+            )  # Y axis in green
+            mlab.plot3d(
+                [0, 0], [0, 0], [0, axes_length], color=(0, 0, 1), tube_radius=0.1
+            )  # Z axis in blue
+            mlab.plot3d(
+                [-axes_length, 0], [0, 0], [0, 0], color=(1, 0, 0), tube_radius=0.1
+            )  # Negative X axis in red
+            mlab.plot3d(
+                [0, 0], [-axes_length, 0], [0, 0], color=(0, 1, 0), tube_radius=0.1
+            )  # Negative Y axis in green
+
+        draw_axes()
+
         self.animator: Animator = anim()
         mlab.orientation_axes(line_width=1, xlabel="X", ylabel="Y", zlabel="Z")
         mlab.show()
@@ -182,4 +246,6 @@ def spawn_log_handler(init_config: ProcessInitConfig):
     ), f"LogHandler [{init_config.class_name}] was not found"
     log_handler: LogHandler = log_handler_class(**init_config.params)
     log_handler.run()
-    logging.info(f"Finalized {init_config.class_name} log handler {init_config.worker}!")
+    logging.info(
+        f"Finalized {init_config.class_name} log handler {init_config.worker}!"
+    )

@@ -4,34 +4,27 @@
       "class_name": "RedisCommunicator"
     }
   ],
-  "environments": [
-  ],
+  "environments": [],
   "agents": [
     {
       "worker": "Thread",
-      "class_name": "CFDrone2D",
+      "class_name": "VirtualDrone2D",
       "params": {
         "config": {
-          "agent_id": "radio://0/100/2M/E7E7E7E707",
+          "agent_id": "X",
           "clock_freq": 10,
-          "default_height": 0.55,
-          "max_vel": 0.5,
-          "log_variables": [
-            "stateEstimate.yaw",
-            "stateEstimate.x",
-            "stateEstimate.y",
-            "stateEstimate.z"
-          ],
-          "log_interval_ms": 100,
-          "total_time": 600
+          "default_height": 0.4,
+          "max_vel": 0.2,
+          "log_interval_ms": 200,
+          "total_time": 600,
+          "start_position": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0
+          }
         },
         "controller": {
-          "class_name": "KeyboardController",
-          "params": {
-            "config": {
-              "agent_id": "radio://0/100/2M/E7E7E7E707"
-            }
-          }
+          "class_name": "HillClimbingController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -45,9 +38,8 @@
       "class_name": "PositionLogger",
       "params": {
         "config": {
-          "experiment_dir": "one_drone_2d_keyboard_vu",
-          "gui_enabled": "true",
-          "delay": 100
+          "experiment_dir": "hill_climbing_square",
+          "gui_enabled": "true"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -59,8 +51,8 @@
       "class_name": "FieldStateLogger",
       "params": {
         "config": {
-          "experiment_dir": "one_drone_2d_keyboard_vu",
-          "agent_id": "radio://0/100/2M/E7E7E7E707",
+          "experiment_dir": "hill_climbing_square",
+          "agent_id": "X",
           "gui_enabled": "true"
         },
         "communicator": {

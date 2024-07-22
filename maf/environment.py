@@ -24,7 +24,7 @@ class Environment(ABC):
 
 
 def apply_distribution(
-        tensor: torch.Tensor, position: Position, sigma=5, amplitude=1, add=True
+    tensor: torch.Tensor, position: Position, sigma=5, amplitude=1, add=True
 ):
     """
     Apply a Gaussian distribution around a given position on a 2D tensor.
@@ -44,7 +44,7 @@ def apply_distribution(
         torch.arange(tensor.size(0)), torch.arange(tensor.size(1))
     )
     gaussian = amplitude * torch.exp(
-        -((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma ** 2)
+        -((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma**2)
     )
     if add:
         return tensor + gaussian
@@ -82,7 +82,7 @@ class FieldModulationEnvironment(Environment):
 
 
 def spawn_environment(
-        init_config: ProcessInitConfig,
+    init_config: ProcessInitConfig,
 ):
     """
     This method is the entrypoint for the environment process

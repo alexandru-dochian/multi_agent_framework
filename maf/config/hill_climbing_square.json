@@ -4,8 +4,7 @@
       "class_name": "RedisCommunicator"
     }
   ],
-  "environments": [
-  ],
+  "environments": [],
   "agents": [
     {
       "worker": "Thread",
@@ -17,18 +16,15 @@
           "default_height": 0.4,
           "max_vel": 0.5,
           "log_interval_ms": 200,
-          "total_time": 600
+          "total_time": 600,
+          "start_position": {
+            "x": -0.5,
+            "y": 0.5,
+            "z": 0
+          }
         },
         "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": -2,
-                "y": -2
-              }
-            }
-          }
+          "class_name": "HillClimbingController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -45,18 +41,15 @@
           "default_height": 0.4,
           "max_vel": 0.5,
           "log_interval_ms": 200,
-          "total_time": 600
+          "total_time": 600,
+          "start_position": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0
+          }
         },
         "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": 2,
-                "y": -2
-              }
-            }
-          }
+          "class_name": "HillClimbingController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -73,18 +66,15 @@
           "default_height": 0.4,
           "max_vel": 0.5,
           "log_interval_ms": 200,
-          "total_time": 600
+          "total_time": 600,
+          "start_position": {
+            "x": 0.5,
+            "y": -0.5,
+            "z": 0
+          }
         },
         "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": 2,
-                "y": 2
-              }
-            }
-          }
+          "class_name": "HillClimbingController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -101,18 +91,15 @@
           "default_height": 0.4,
           "max_vel": 0.5,
           "log_interval_ms": 200,
-          "total_time": 600
+          "total_time": 600,
+          "start_position": {
+            "x": -0.5,
+            "y": -0.5,
+            "z": 0
+          }
         },
         "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": -2,
-                "y": 2
-              }
-            }
-          }
+          "class_name": "HillClimbingController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -129,15 +116,15 @@
           "default_height": 0.4,
           "max_vel": 0.5,
           "log_interval_ms": 200,
-          "total_time": 600
+          "total_time": 600,
+          "start_position": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
         },
         "controller": {
-          "class_name": "KeyboardController",
-          "params": {
-            "config": {
-              "agent_id": "X"
-            }
-          }
+          "class_name": "HillClimbingController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -151,7 +138,7 @@
       "class_name": "PositionLogger",
       "params": {
         "config": {
-          "experiment_dir": "default",
+          "experiment_dir": "hill_climbing_square",
           "gui_enabled": "true"
         },
         "communicator": {
@@ -164,9 +151,10 @@
       "class_name": "FieldStateLogger",
       "params": {
         "config": {
-          "experiment_dir": "default",
+          "experiment_dir": "hill_climbing_square",
           "agent_id": "X",
-          "gui_enabled": "true"
+          "gui_enabled": "true",
+          "delay": 100
         },
         "communicator": {
           "class_name": "RedisCommunicator"

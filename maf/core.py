@@ -35,16 +35,84 @@ class Command(ABC):
     ...
 
 
+# class SimpleAction2D(Action):
+#     """
+#     Enum class representing various 2D actions with preserved ordering.
+#     Do not change the order as it matched the 3x3 grid:
+#
+#     The grid representation is as follows:
+#     BACK_LEFT  |   LEFT     |  FRONT_LEFT
+#     -------------------------------------
+#     BACK       |   STOP     |  FRONT
+#     -------------------------------------
+#     BACK_RIGHT |   RIGHT    |  FRONT_RIGHT
+#     """
+#
+#     BACK_LEFT = "BACK_LEFT"
+#     LEFT = "LEFT"
+#     FRONT_LEFT = "FRONT_LEFT"
+#
+#     BACK = "BACK"
+#     STOP = "STOP"
+#     FRONT = "FRONT"
+#
+#     BACK_RIGHT = "BACK_RIGHT"
+#     RIGHT = "RIGHT"
+#     FRONT_RIGHT = "FRONT_RIGHT"
+
+# class SimpleAction2D(Action):
+#     """
+#     Enum class representing various 2D actions with preserved ordering.
+#     Do not change the order as it matched the 3x3 grid:
+#
+#     The grid representation is as follows:
+#
+#
+#     FRONT_LEFT  |   FRONT     |  FRONT_RIGHT
+#     -------------------------------------
+#     LEFT       |   STOP     |  RIGHT
+#     -------------------------------------
+#     BACK_LEFT |   BACK    |  BACK_RIGHT
+#     """
+#     FRONT_LEFT = "FRONT_LEFT"
+#     FRONT = "FRONT"
+#     FRONT_RIGHT = "FRONT_RIGHT"
+#
+#     LEFT = "LEFT"
+#     STOP = "STOP"
+#     RIGHT = "RIGHT"
+#
+#     BACK_LEFT = "BACK_LEFT"
+#     BACK = "BACK"
+#     BACK_RIGHT = "BACK_RIGHT"
+
+
 class SimpleAction2D(Action):
-    FRONT_LEFT = "FRONT_LEFT"
-    FRONT = "FRONT"
-    FRONT_RIGHT = "FRONT_RIGHT"
-    RIGHT = "RIGHT"
+    """
+    Enum class representing various 2D actions with preserved ordering.
+    Do not change the order as it matched the 3x3 grid:
+
+    The grid representation is as follows:
+
+
+    BACK_RIGHT  |   BACK     | BACK_LEFT
+    -------------------------------------
+    RIGHT       |   STOP     |  LEFT
+    -------------------------------------
+    FRONT_RIGHT |   FRONT    |  FRONT_LEFT
+    """
+
     BACK_RIGHT = "BACK_RIGHT"
     BACK = "BACK"
     BACK_LEFT = "BACK_LEFT"
-    LEFT = "LEFT"
+
+    RIGHT = "RIGHT"
     STOP = "STOP"
+    LEFT = "LEFT"
+
+    FRONT_RIGHT = "FRONT_RIGHT"
+    FRONT = "FRONT"
+    FRONT_LEFT = "FRONT_LEFT"
 
 
 class VelocityCommand2D(Command):
@@ -68,6 +136,9 @@ class Position(pydantic.BaseModel):
 
     def is_set(self):
         return not (self.x is None and self.y is None and self.z is None)
+
+    def to_numpy(self) -> np.array:
+        return [self.x, self.y, self.z]
 
     def __str__(self):
         return f"Position(x={self.x}, y={self.y}, z={self.z})"

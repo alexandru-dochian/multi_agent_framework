@@ -32,8 +32,8 @@ def load_config(file_path: str) -> dict:
     abs_file_path = os.path.abspath(file_path)
     expected_directory_path = os.path.abspath(CONFIG_DIR)
     assert (
-            os.path.commonprefix([abs_file_path, expected_directory_path])
-            == expected_directory_path
+        os.path.commonprefix([abs_file_path, expected_directory_path])
+        == expected_directory_path
     ), f"Config file should be placed under `{CONFIG_DIR}` directory!"
     with open(os.path.join(CONFIG_DIR, abs_file_path)) as fp:
         return json.load(fp)

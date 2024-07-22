@@ -1,6 +1,7 @@
 import datetime
 from abc import ABC, abstractmethod
 
+import numpy as np
 import pygame
 
 from maf.core import (
@@ -11,6 +12,7 @@ from maf.core import (
     ObjectInitConfig,
     Action,
     PositionState,
+    FieldState,
 )
 
 
@@ -43,7 +45,7 @@ class GoToPointController(Controller):
     def __init__(self, config: dict):
         super().__init__(GoToPointControllerConfig(**config), PositionState())
         assert (
-                self.config.target_position is not None
+            self.config.target_position is not None
         ), f"Target position [target_position] must be specified for {self.__class__.__name__}"
 
     def set_state(self, state: PositionState):
@@ -88,15 +90,22 @@ class KeyboardController(Controller):
     HEIGHT = 600
 
     def __init__(self, config: dict | None = None):
-        super().__init__(KeyboardControllerConfig(**config) if config else KeyboardControllerConfig(), None)
+        super().__init__(
+            KeyboardControllerConfig(**config)
+            if config
+            else KeyboardControllerConfig(),
+            None,
+        )
         self.last_action: SimpleAction2D = SimpleAction2D.STOP
         self.pressed_keys: set[int] = set()
 
         pygame.init()
         pygame.time.delay(500)  # ms
-        pygame.display.set_caption(f"{self.__class__.__name__} for agent [{self.config.agent_id}]")
+        pygame.display.set_caption(
+            f"{self.__class__.__name__} for agent [{self.config.agent_id}]"
+        )
         self.display_surface = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-        self.font = pygame.font.Font('freesansbold.ttf', 32)
+        self.font = pygame.font.Font("freesansbold.ttf", 32)
 
     def predict(self) -> SimpleAction2D:
         for event in pygame.event.get():
@@ -131,7 +140,9 @@ class KeyboardController(Controller):
     def update_display(self):
         self.display_surface.fill((0, 0, 0))
         self.display_text_at_pos(self.last_action, (self.WIDTH // 2, self.HEIGHT // 2))
-        self.display_text_at_pos(f"[{str(datetime.datetime.now())}]", (self.WIDTH // 2, self.HEIGHT // 4))
+        self.display_text_at_pos(
+            f"[{str(datetime.datetime.now())}]", (self.WIDTH // 2, self.HEIGHT // 4)
+        )
         pygame.display.update()
 
     def display_text_at_pos(self, text: str, pos: tuple):
@@ -145,6 +156,69 @@ class KeyboardController(Controller):
 
     def set_state(self, state: State):
         pass
+
+
+class HillClimbingControllerConfig(Config):
+    agent_id: str = "Unknown"
+
+
+class HillClimbingController(Controller):
+    config: GoToPointControllerConfig
+    state: FieldState
+
+    REWARD_FUNCTIONS = {
+        "sum": np.sum,
+        "avg": np.mean,
+        "min": np.min,
+        "max": np.max,
+    }
+
+    def compute_subarray_results(self, arr, func_name="sum"):
+        if func_name not in self.REWARD_FUNCTIONS:
+            raise ValueError(
+                f"Function {func_name} not recognized. Choose from {list(self.REWARD_FUNCTIONS.keys())}"
+            )
+
+        func = self.REWARD_FUNCTIONS[func_name]
+        nrows, ncols = arr.shape
+        row_step = nrows // 3
+        col_step = ncols // 3
+
+        results = np.zeros((3, 3))
+
+        for i in range(3):
+            for j in range(3):
+                subarray = arr[
+                    i * row_step : (i + 1) * row_step, j * col_step : (j + 1) * col_step
+                ]
+                results[i, j] = func(subarray)
+
+        return results
+
+    def __init__(self, config: dict | None = None):
+        super().__init__(
+            HillClimbingControllerConfig(**config)
+            if config
+            else HillClimbingControllerConfig(),
+            FieldState(),
+        )
+
+    def predict(self) -> SimpleAction2D:
+        def all_elements_close(arr, tol=1e-3):
+            return np.all(np.isclose(arr, arr[0], atol=tol))
+
+        if self.state.field is None:
+            return SimpleAction2D.STOP
+
+        field: np.array = self.state.field.data
+        grid: np.array = self.compute_subarray_results(field, "sum")
+        if all_elements_close(grid):
+            return SimpleAction2D.STOP
+
+        return list(SimpleAction2D)[np.argmax(grid)]
+
+    def set_state(self, state: State):
+        self.state = state
 
 
 def get_controller(init_config: dict) -> Controller:
