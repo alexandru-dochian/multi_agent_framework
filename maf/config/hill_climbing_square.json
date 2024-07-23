@@ -18,9 +18,9 @@
           "log_interval_ms": 200,
           "total_time": 600,
           "start_position": {
-            "x": -0.5,
-            "y": 0.5,
-            "z": 0
+            "x": -1,
+            "y": 1,
+            "z": 0.55
           }
         },
         "controller": {
@@ -43,9 +43,9 @@
           "log_interval_ms": 200,
           "total_time": 600,
           "start_position": {
-            "x": 0.5,
-            "y": 0.5,
-            "z": 0
+            "x": 0,
+            "y": 1,
+            "z": 0.55
           }
         },
         "controller": {
@@ -68,9 +68,9 @@
           "log_interval_ms": 200,
           "total_time": 600,
           "start_position": {
-            "x": 0.5,
-            "y": -0.5,
-            "z": 0
+            "x": 0,
+            "y": 0,
+            "z": 0.55
           }
         },
         "controller": {
@@ -93,9 +93,9 @@
           "log_interval_ms": 200,
           "total_time": 600,
           "start_position": {
-            "x": -0.5,
-            "y": -0.5,
-            "z": 0
+            "x": 0,
+            "y": -1,
+            "z": 0.55
           }
         },
         "controller": {
@@ -120,7 +120,7 @@
           "start_position": {
             "x": 0,
             "y": 0,
-            "z": 0
+            "z": 0.55
           }
         },
         "controller": {

@@ -39,11 +39,11 @@ class Agent(ABC):
     communicator: Communicator
 
     def __init__(
-        self,
-        config: Config,
-        state: State,
-        controller: Controller,
-        communicator: Communicator,
+            self,
+            config: Config,
+            state: State,
+            controller: Controller,
+            communicator: Communicator,
     ):
         self.config = config
         self.state = state
@@ -66,7 +66,7 @@ class VirtualDrone2DConfig(Config):
     max_vel: float = 0.1  # m/s
     default_height: float = 0.4  # m
     total_time: int = 60  # seconds
-    start_position: Position = Position(x=0, y=0, z=0)
+    start_position: Position = Position(x=0, y=0, z=0.4)
 
 
 class VirtualDrone2D(Agent):
@@ -79,7 +79,15 @@ class VirtualDrone2D(Agent):
     field_size: list[int] = [84, 84]
 
     # TODO Environment
-    field_modulation = np.array([[0, 0], [1, 1], [-1, 1], [1, -1], [-1, -1]])
+    field_modulation = np.array(
+        [
+            [-1, 1],
+            [0, 1],
+            [0, 0],
+            [-1, -0],
+            [-0.5, 0.5]
+        ]
+    )
 
     def __init__(self, config: dict, controller: dict, communicator: dict):
         super().__init__(
@@ -123,7 +131,7 @@ class VirtualDrone2D(Agent):
         logging.info(f"Finished [{self.config.agent_id}]!")
 
     def compute_new_state(
-        self, old_state: FieldState, command: VelocityCommand2D
+            self, old_state: FieldState, command: VelocityCommand2D
     ) -> FieldState:
         duration: float = 1 / self.config.clock_freq
         old_position: Position = old_state.position
@@ -168,7 +176,7 @@ class VirtualDrone2D(Agent):
                 & (others[:, 0] <= x_max)
                 & (others[:, 1] >= y_min)
                 & (others[:, 1] <= y_max)
-            ]
+                ]
         else:
             filtered_others = others
 
@@ -186,8 +194,8 @@ class VirtualDrone2D(Agent):
 
             # Ensure the indices are within the bounds of the tensor
             if (
-                0 <= x_tensor < self.field_size[1]
-                and 0 <= y_tensor < self.field_size[0]
+                    0 <= x_tensor < self.field_size[1]
+                    and 0 <= y_tensor < self.field_size[0]
             ):
                 field = utils.apply_distribution(
                     field,
@@ -225,7 +233,7 @@ class VirtualDrone2D(Agent):
             return rotated_points
 
         theta = 1
-        rot_center = [0.5, 0.5]
+        rot_center = [0.5, -0.5]
         self.field_modulation = rotate_points(self.field_modulation, theta, rot_center)
         field_modulation = self.field_modulation
 
@@ -234,7 +242,7 @@ class VirtualDrone2D(Agent):
             & (field_modulation[:, 0] <= x_max)
             & (field_modulation[:, 1] >= y_min)
             & (field_modulation[:, 1] <= y_max)
-        ]
+            ]
         # Apply field_modulation
         for point in field_modulation_filtered:
             x_tensor, y_tensor = self.to_tensor_space(
@@ -243,8 +251,8 @@ class VirtualDrone2D(Agent):
 
             # Ensure the indices are within the bounds of the tensor
             if (
-                0 <= x_tensor < self.field_size[1]
-                and 0 <= y_tensor < self.field_size[0]
+                    0 <= x_tensor < self.field_size[1]
+                    and 0 <= y_tensor < self.field_size[0]
             ):
                 field = utils.apply_distribution(
                     field,
@@ -258,14 +266,54 @@ class VirtualDrone2D(Agent):
                     f"Point {point} projected to out-of-bounds tensor coordinates ({x_tensor}, {y_tensor})"
                 )
 
+        limit_depth = -1 * amplitude * 2
+        # Fill tensor with the constant value outside the computed limits
+        x_min_limit = -2.5
+        x_max_limit = 1.5
+        y_min_limit = -1.0
+        y_max_limit = 2.0
+
+        limits = {
+            "x_min": self.to_tensor_space(
+                [x_min_limit, center_point[1]],
+                center_point,
+                self.field_size,
+                vicinity_limit,
+            )[0],
+            "x_max": self.to_tensor_space(
+                [x_max_limit, center_point[1]],
+                center_point,
+                self.field_size,
+                vicinity_limit,
+            )[0],
+            "y_min": self.to_tensor_space(
+                [center_point[0], y_min_limit],
+                center_point,
+                self.field_size,
+                vicinity_limit,
+            )[1],
+            "y_max": self.to_tensor_space(
+                [center_point[0], y_max_limit],
+                center_point,
+                self.field_size,
+                vicinity_limit,
+            )[1],
+        }
+
+        # apply limts
+        # field[:, : limits["x_min"]] = limit_depth
+        # field[:, limits["x_max"] + 1:] = limit_depth
+        # field[: limits["y_min"], :] = limit_depth
+        # field[limits["y_max"] + 1:, :] = limit_depth
+
         # Clip and resize the tensor
         clip_size = [self.field_size[0] // 2, self.field_size[1] // 2]
         start_x = self.field_size[1] // 2 - clip_size[1] // 2
         start_y = self.field_size[0] // 2 - clip_size[0] // 2
 
         clipped_tensor = field[
-            start_y : start_y + clip_size[0], start_x : start_x + clip_size[1]
-        ]
+                         start_y: start_y + clip_size[0], start_x: start_x + clip_size[1]
+                         ]
         rescaled_tensor = zoom(
             input=clipped_tensor,
             zoom=(self.field_size[0] / clip_size[0], self.field_size[1] / clip_size[1]),
@@ -371,7 +419,7 @@ class CFDrone2D(Agent):
 
         logging.info(f"Initializing [{self.hex_address}]...")
         with SyncCrazyflie(
-            self.config.agent_id, Crazyflie(rw_cache=f"./cache/{self.hex_address}")
+                self.config.agent_id, Crazyflie(rw_cache=f"./cache/{self.hex_address}")
         ) as scf:
             scf.wait_for_params()
             ...
@@ -456,7 +504,7 @@ class CFDrone2D(Agent):
                 & (others[:, 0] <= x_max)
                 & (others[:, 1] >= y_min)
                 & (others[:, 1] <= y_max)
-            ]
+                ]
         else:
             filtered_others = others
 
@@ -474,8 +522,8 @@ class CFDrone2D(Agent):
 
             # Ensure the indices are within the bounds of the tensor
             if (
-                0 <= x_tensor < self.field_size[1]
-                and 0 <= y_tensor < self.field_size[0]
+                    0 <= x_tensor < self.field_size[1]
+                    and 0 <= y_tensor < self.field_size[0]
             ):
                 field = utils.apply_distribution(
                     field,
@@ -503,7 +551,7 @@ class CFDrone2D(Agent):
             & (field_modulation[:, 0] <= x_max)
             & (field_modulation[:, 1] >= y_min)
             & (field_modulation[:, 1] <= y_max)
-        ]
+            ]
         # Apply field_modulation
         for point in field_modulation_filtered:
             x_tensor, y_tensor = self.to_tensor_space(
@@ -512,8 +560,8 @@ class CFDrone2D(Agent):
 
             # Ensure the indices are within the bounds of the tensor
             if (
-                0 <= x_tensor < self.field_size[1]
-                and 0 <= y_tensor < self.field_size[0]
+                    0 <= x_tensor < self.field_size[1]
+                    and 0 <= y_tensor < self.field_size[0]
             ):
                 field = utils.apply_distribution(
                     field,
@@ -533,8 +581,8 @@ class CFDrone2D(Agent):
         start_y = self.field_size[0] // 2 - clip_size[0] // 2
 
         clipped_tensor = field[
-            start_y : start_y + clip_size[0], start_x : start_x + clip_size[1]
-        ]
+                         start_y: start_y + clip_size[0], start_x: start_x + clip_size[1]
+                         ]
         rescaled_tensor = zoom(
             input=clipped_tensor,
             zoom=(self.field_size[0] / clip_size[0], self.field_size[1] / clip_size[1]),
@@ -559,7 +607,7 @@ class CFDrone2D(Agent):
             print("self.yaw", self.yaw)
             spent_time = 0
             while (
-                spent_time < self.config.total_time
+                    spent_time < self.config.total_time
             ) and self.communicator.is_active():
                 self.controller.set_state(self.state)
                 action: Action = self.controller.predict()

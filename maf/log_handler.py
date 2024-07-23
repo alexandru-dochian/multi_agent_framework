@@ -92,21 +92,26 @@ class PositionLogger(LogHandler):
 
         # Function to draw the axes
         def draw_axes():
-            axes_length = 3.0 
+            x_min_limit = -2.5
+            x_max_limit = 1.5
+            y_min_limit = -1.0
+            y_max_limit = 2.0
+            z_max_limit = 2.5
+
             mlab.plot3d(
-                [0, axes_length], [0, 0], [0, 0], color=(1, 0, 0), tube_radius=0.01
+                [0, x_max_limit], [0, 0], [0, 0], color=(1, 0, 0), tube_radius=0.01
             )  # X axis in red
             mlab.plot3d(
-                [0, 0], [0, axes_length], [0, 0], color=(0, 1, 0), tube_radius=0.01
+                [0, 0], [0, y_max_limit], [0, 0], color=(0, 1, 0), tube_radius=0.01
             )  # Y axis in green
             mlab.plot3d(
-                [0, 0], [0, 0], [0, axes_length], color=(0, 0, 1), tube_radius=0.01
+                [0, 0], [0, 0], [0, z_max_limit], color=(0, 0, 1), tube_radius=0.01
             )  # Z axis in blue
             mlab.plot3d(
-                [-axes_length, 0], [0, 0], [0, 0], color=(1, 0, 0), tube_radius=0.01
+                [x_min_limit, 0], [0, 0], [0, 0], color=(1, 0, 0), tube_radius=0.01
             )  # Negative X axis in red
             mlab.plot3d(
-                [0, 0], [-axes_length, 0], [0, 0], color=(0, 1, 0), tube_radius=0.01
+                [0, 0], [y_min_limit, 0], [0, 0], color=(0, 1, 0), tube_radius=0.01
             )  # Negative Y axis in green
 
         # Function to draw the grid on the XY plane in all quadrants
