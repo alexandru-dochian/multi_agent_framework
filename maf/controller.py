@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import pygame
 
+from maf import field_modulation
 from maf.core import (
     Config,
     Position,
@@ -45,7 +46,7 @@ class GoToPointController(Controller):
     def __init__(self, config: dict):
         super().__init__(GoToPointControllerConfig(**config), PositionState())
         assert (
-            self.config.target_position is not None
+                self.config.target_position is not None
         ), f"Target position [target_position] must be specified for {self.__class__.__name__}"
 
     def set_state(self, state: PositionState):
@@ -160,40 +161,31 @@ class KeyboardController(Controller):
 
 class HillClimbingControllerConfig(Config):
     agent_id: str = "Unknown"
+    pooling_function: str = "sum"
 
 
 class HillClimbingController(Controller):
-    config: GoToPointControllerConfig
+    config: HillClimbingControllerConfig
     state: FieldState
 
-    REWARD_FUNCTIONS = {
-        "sum": np.sum,
-        "avg": np.mean,
-        "min": np.min,
-        "max": np.max,
+    """
+    BACK_RIGHT  |   RIGHT     | FRONT_RIGHT
+    -------------------------------------
+    BACK        |   STOP      | FRONT
+    -------------------------------------
+    BACK_LEFT   |   LEFT      | FRONT_LEFT
+    """
+    GRID_INDEX_TO_ACTION: dict = {
+        0: SimpleAction2D.BACK_RIGHT,
+        1: SimpleAction2D.RIGHT,
+        2: SimpleAction2D.FRONT_RIGHT,
+        3: SimpleAction2D.BACK,
+        4: SimpleAction2D.STOP,
+        5: SimpleAction2D.FRONT,
+        6: SimpleAction2D.BACK_LEFT,
+        7: SimpleAction2D.LEFT,
+        8: SimpleAction2D.FRONT_LEFT,
     }
-
-    def compute_subarray_results(self, arr, func_name="sum"):
-        if func_name not in self.REWARD_FUNCTIONS:
-            raise ValueError(
-                f"Function {func_name} not recognized. Choose from {list(self.REWARD_FUNCTIONS.keys())}"
-            )
-
-        func = self.REWARD_FUNCTIONS[func_name]
-        nrows, ncols = arr.shape
-        row_step = nrows // 3
-        col_step = ncols // 3
-
-        results = np.zeros((3, 3))
-
-        for i in range(3):
-            for j in range(3):
-                subarray = arr[
-                    i * row_step : (i + 1) * row_step, j * col_step : (j + 1) * col_step
-                ]
-                results[i, j] = func(subarray)
-
-        return results
 
     def __init__(self, config: dict | None = None):
         super().__init__(
@@ -211,11 +203,11 @@ class HillClimbingController(Controller):
             return SimpleAction2D.STOP
 
         field: np.array = self.state.field.data
-        grid: np.array = self.compute_subarray_results(field, "sum")
+        grid: np.array = field_modulation.pooling_to_3x3(field, self.config.pooling_function)
         if all_elements_close(grid):
             return SimpleAction2D.STOP
 
-        return list(SimpleAction2D)[np.argmax(grid)]
+        return self.GRID_INDEX_TO_ACTION[np.argmax(grid)]
 
     def set_state(self, state: State):
         self.state = state

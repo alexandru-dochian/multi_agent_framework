@@ -5,6 +5,51 @@
     }
   ],
   "environments": [
+    {
+      "worker": "Process",
+      "class_name": "FieldModulationEnvironment",
+      "params": {
+        "config": {
+          "delay": 100,
+          "space_limit": {
+            "x_min": -2.5,
+            "x_max": 1.5,
+            "y_min": -1.0,
+            "y_max": 2.0
+          },
+          "modulations": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": -1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": -1,
+              "y": 0
+            }
+          ],
+          "rotation_center": {
+            "x": -0.5,
+            "y": 0
+          },
+          "theta": 5
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    }
   ],
   "agents": [
     {
@@ -12,23 +57,19 @@
       "class_name": "VirtualDrone2D",
       "params": {
         "config": {
+          "delay": 100,
           "agent_id": "A",
-          "clock_freq": 10,
-          "default_height": 0.4,
-          "max_vel": 0.5,
-          "log_interval_ms": 200,
+          "default_height": 0.5,
+          "max_vel": 0.4,
+          "initial_position": {
+            "x": -0.5,
+            "y": 0.5,
+            "z": 0.55
+          },
           "total_time": 600
         },
         "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": -2,
-                "y": -2
-              }
-            }
-          }
+          "class_name": "HillClimbingController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -40,23 +81,19 @@
       "class_name": "VirtualDrone2D",
       "params": {
         "config": {
+          "delay": 100,
           "agent_id": "B",
-          "clock_freq": 10,
-          "default_height": 0.4,
-          "max_vel": 0.5,
-          "log_interval_ms": 200,
+          "default_height": 0.5,
+          "max_vel": 0.4,
+          "initial_position": {
+            "x": -0.5,
+            "y": 0.5,
+            "z": 0.55
+          },
           "total_time": 600
         },
         "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": 2,
-                "y": -2
-              }
-            }
-          }
+          "class_name": "HillClimbingController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -68,23 +105,19 @@
       "class_name": "VirtualDrone2D",
       "params": {
         "config": {
+          "delay": 100,
           "agent_id": "C",
-          "clock_freq": 10,
-          "default_height": 0.4,
-          "max_vel": 0.5,
-          "log_interval_ms": 200,
-          "total_time": 600
+          "default_height": 0.5,
+          "max_vel": 0.4,
+          "total_time": 600,
+          "initial_position": {
+            "x": -0.5,
+            "y": 0.5,
+            "z": 0.55
+          }
         },
         "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": 2,
-                "y": 2
-              }
-            }
-          }
+          "class_name": "HillClimbingController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -96,23 +129,19 @@
       "class_name": "VirtualDrone2D",
       "params": {
         "config": {
+          "delay": 100,
           "agent_id": "D",
-          "clock_freq": 10,
-          "default_height": 0.4,
-          "max_vel": 0.5,
-          "log_interval_ms": 200,
-          "total_time": 600
+          "default_height": 0.5,
+          "max_vel": 0.4,
+          "total_time": 600,
+          "initial_position": {
+            "x": -0.5,
+            "y": 0.5,
+            "z": 0.55
+          }
         },
         "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": -2,
-                "y": 2
-              }
-            }
-          }
+          "class_name": "HillClimbingController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -124,12 +153,16 @@
       "class_name": "VirtualDrone2D",
       "params": {
         "config": {
+          "delay": 100,
           "agent_id": "X",
-          "clock_freq": 10,
-          "default_height": 0.4,
-          "max_vel": 0.5,
-          "log_interval_ms": 200,
-          "total_time": 600
+          "default_height": 0.5,
+          "max_vel": 0.4,
+          "total_time": 600,
+          "initial_position": {
+            "x": 0,
+            "y": 0,
+            "z": 0.55
+          }
         },
         "controller": {
           "class_name": "KeyboardController",
@@ -151,8 +184,7 @@
       "class_name": "PositionLogger",
       "params": {
         "config": {
-          "experiment_dir": "default",
-          "gui_enabled": "true"
+          "experiment_dir": "default"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -165,8 +197,7 @@
       "params": {
         "config": {
           "experiment_dir": "default",
-          "agent_id": "X",
-          "gui_enabled": "true"
+          "agent_id": "X"
         },
         "communicator": {
           "class_name": "RedisCommunicator"

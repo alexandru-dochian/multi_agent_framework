@@ -4,7 +4,7 @@ import pickle
 
 import redis
 
-from maf.core import Communicator, Config, ObjectInitConfig, Action, State
+from maf.core import Communicator, Config, ObjectInitConfig, State
 
 
 class RedisCommunicatorConfig(Config):
@@ -56,33 +56,32 @@ class RedisCommunicator(Communicator):
     def deregister_agent(self, agent_id: str):
         self.redis_instance.srem(self.REGISTERED_AGENTS, agent_id)
 
-    def registered_agents(self) -> list[str]:
+    def broadcast_environment_state(self, state: State):
+        self.send(self._get_environment_state_key(), state)
+
+    def broadcast_agent_state(self, agent_id: str, state: State):
+        state_key: str = self._get_agent_state_key(agent_id)
+        self.send(state_key, state)
+
+    def fetch_environment_state(self) -> State:
+        return self.recv(self._get_environment_state_key())
+
+    def fetch_agent_state(self, agent_id: str) -> State:
+        return self.recv(self._get_agent_state_key(agent_id))
+
+    def fetch_registered_agents(self) -> list[str]:
         return [
             member.decode("utf-8")
             for member in self.redis_instance.smembers(self.REGISTERED_AGENTS)
         ]
 
-    def broadcast_state(self, agent_id: str, state: State):
-        state_key: str = self._get_state_key(agent_id)
-        self.send(state_key, state)
-
-    def broadcast_action(self, agent_id: str, action: Action):
-        action_key: str = self._get_action_key(agent_id)
-        self.send(action_key, action)
-
-    def get_state(self, agent_id: str) -> State:
-        return self.recv(self._get_state_key(agent_id))
-
-    def get_action(self, agent_id: str) -> Action:
-        return self.recv(self._get_action_key(agent_id))
-
     @staticmethod
-    def _get_action_key(agent_id: str) -> str:
-        return f"{agent_id}_action"
-
-    @staticmethod
-    def _get_state_key(agent_id: str) -> str:
+    def _get_agent_state_key(agent_id: str) -> str:
         return f"{agent_id}_state"
+
+    @staticmethod
+    def _get_environment_state_key() -> str:
+        return f"environment"
 
 
 def get_communicator(init_config: dict | ObjectInitConfig) -> Communicator:

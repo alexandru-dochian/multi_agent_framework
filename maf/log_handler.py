@@ -53,8 +53,8 @@ class PositionLogger(LogHandler):
                     x_new = []
                     y_new = []
                     z_new = []
-                    for agent in self.communicator.registered_agents():
-                        state: PositionState = self.communicator.get_state(agent)
+                    for agent in self.communicator.fetch_registered_agents():
+                        state: PositionState = self.communicator.fetch_agent_state(agent)
                         if state is None or state.position is None:
                             continue
 
@@ -92,6 +92,7 @@ class PositionLogger(LogHandler):
 
         # Function to draw the axes
         def draw_axes():
+            # TODO: get from environment
             x_min_limit = -2.5
             x_max_limit = 1.5
             y_min_limit = -1.0
@@ -181,7 +182,7 @@ class FieldStateLogger(LogHandler):
         def anim():
             try:
                 while self.communicator.is_active():
-                    field_state: FieldState = self.communicator.get_state(
+                    field_state: FieldState = self.communicator.fetch_agent_state(
                         self.config.agent_id
                     )
                     if field_state is None:
@@ -189,7 +190,7 @@ class FieldStateLogger(LogHandler):
                             field=Field(data=np.random.random((84, 84)))
                         )
                     data: np.array = field_state.field.data
-                    self.surface.mlab_source.reset(scalars=data)
+                    self.surface.mlab_source.reset(scalars=data.T)
                     self.scene.scene.reset_zoom()
                     self.write_to_disk(self.config.agent_id, field_state)
                     yield

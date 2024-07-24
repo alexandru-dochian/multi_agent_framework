@@ -35,73 +35,7 @@ class Command(ABC):
     ...
 
 
-# class SimpleAction2D(Action):
-#     """
-#     Enum class representing various 2D actions with preserved ordering.
-#     Do not change the order as it matched the 3x3 grid:
-#
-#     The grid representation is as follows:
-#     BACK_LEFT  |   LEFT     |  FRONT_LEFT
-#     -------------------------------------
-#     BACK       |   STOP     |  FRONT
-#     -------------------------------------
-#     BACK_RIGHT |   RIGHT    |  FRONT_RIGHT
-#     """
-#
-#     BACK_LEFT = "BACK_LEFT"
-#     LEFT = "LEFT"
-#     FRONT_LEFT = "FRONT_LEFT"
-#
-#     BACK = "BACK"
-#     STOP = "STOP"
-#     FRONT = "FRONT"
-#
-#     BACK_RIGHT = "BACK_RIGHT"
-#     RIGHT = "RIGHT"
-#     FRONT_RIGHT = "FRONT_RIGHT"
-
-# class SimpleAction2D(Action):
-#     """
-#     Enum class representing various 2D actions with preserved ordering.
-#     Do not change the order as it matched the 3x3 grid:
-#
-#     The grid representation is as follows:
-#
-#
-#     FRONT_LEFT  |   FRONT     |  FRONT_RIGHT
-#     -------------------------------------
-#     LEFT       |   STOP     |  RIGHT
-#     -------------------------------------
-#     BACK_LEFT |   BACK    |  BACK_RIGHT
-#     """
-#     FRONT_LEFT = "FRONT_LEFT"
-#     FRONT = "FRONT"
-#     FRONT_RIGHT = "FRONT_RIGHT"
-#
-#     LEFT = "LEFT"
-#     STOP = "STOP"
-#     RIGHT = "RIGHT"
-#
-#     BACK_LEFT = "BACK_LEFT"
-#     BACK = "BACK"
-#     BACK_RIGHT = "BACK_RIGHT"
-
-
 class SimpleAction2D(Action):
-    """
-    Enum class representing various 2D actions with preserved ordering.
-    Do not change the order as it matched the 3x3 grid:
-
-    The grid representation is as follows:
-
-
-    BACK_RIGHT  |   BACK     | BACK_LEFT
-    -------------------------------------
-    RIGHT       |   STOP     |  LEFT
-    -------------------------------------
-    FRONT_RIGHT |   FRONT    |  FRONT_LEFT
-    """
-
     BACK_RIGHT = "BACK_RIGHT"
     BACK = "BACK"
     BACK_LEFT = "BACK_LEFT"
@@ -129,6 +63,15 @@ class VelocityCommand2D(Command):
         return f"CFCommand(vel_x={self.vel_x}, vel_y={self.vel_y})"
 
 
+class SpaceLimit(pydantic.BaseModel):
+    x_min: float | None = None
+    x_max: float | None = None
+    y_min: float | None = None
+    y_max: float | None = None
+    z_min: float | None = None
+    z_max: float | None = None
+
+
 class Position(pydantic.BaseModel):
     x: float | None = None
     y: float | None = None
@@ -140,8 +83,17 @@ class Position(pydantic.BaseModel):
     def to_numpy(self) -> np.array:
         return [self.x, self.y, self.z]
 
+    def to_numpy_2d(self) -> np.array:
+        return [self.x, self.y]
+
     def __str__(self):
         return f"Position(x={self.x}, y={self.y}, z={self.z})"
+
+
+class DroneAngle(pydantic.BaseModel):
+    roll: float | None = None
+    pitch: float | None = None
+    yaw: float | None = None
 
 
 class Field:
@@ -161,10 +113,21 @@ class PositionState(State):
 class FieldState(PositionState):
     position: Position
     field: Field
+    angle: DroneAngle
 
-    def __init__(self, position: Position = None, field: Field = None):
+    def __init__(self, position: Position = None, field: Field = None, angle: DroneAngle = None):
         super().__init__(position)
         self.field = field
+        self.angle = angle
+
+
+class FieldModulationEnvironmentState(State):
+    modulations: np.array = np.array([])
+    space_limit: SpaceLimit
+
+    def __init__(self, modulations: np.array, space_limit: SpaceLimit):
+        self.modulations = modulations
+        self.space_limit = space_limit
 
 
 class Communicator(ABC):
@@ -202,21 +165,21 @@ class Communicator(ABC):
         ...
 
     @abstractmethod
-    def registered_agents(self) -> list[str]:
+    def broadcast_environment_state(self, state: State):
         ...
 
     @abstractmethod
-    def broadcast_state(self, agent_id: str, state: State):
+    def broadcast_agent_state(self, agent_id: str, state: State):
         ...
 
     @abstractmethod
-    def broadcast_action(self, agent_id: str, action: Action):
+    def fetch_environment_state(self):
         ...
 
     @abstractmethod
-    def get_state(self, agent_id: str) -> State:
+    def fetch_agent_state(self, agent_id: str) -> State:
         ...
 
     @abstractmethod
-    def get_action(self, agent_id: str) -> Action:
+    def fetch_registered_agents(self) -> list[str]:
         ...

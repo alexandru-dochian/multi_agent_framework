@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.ndimage import zoom
 
+from maf.core import SpaceLimit
+
 REWARD_FUNCTIONS = {
     "sum": np.sum,
     "avg": np.mean,
@@ -9,16 +11,67 @@ REWARD_FUNCTIONS = {
 }
 
 
+def generate_field(
+        field_size: list[float],
+        center: np.array,
+        neighbours: np.array,
+        modulations: np.array,
+        vicinity_limit: np.array,
+        space_limit: SpaceLimit,
+):
+    field: np.array = np.zeros(field_size)
+
+    neighbours: np.array = filter_points_in_vicinity(
+        neighbours, center, vicinity_limit
+    )
+    modulations: np.array = filter_points_in_vicinity(
+        modulations, center, vicinity_limit
+    )
+
+    for neighbour in neighbours:
+        relative_neighbour_field_pos = to_field_position(
+            neighbour, center, field_size, vicinity_limit
+        )
+        field = apply_distribution(
+            field, relative_neighbour_field_pos, operation="subtract"
+        )
+
+    for modulation in modulations:
+        relative_modulation_field_pos = to_field_position(
+            modulation, center, field_size, vicinity_limit
+        )
+        field = apply_distribution(
+            field, relative_modulation_field_pos, operation="add", amplitude=0.5
+        )
+
+    field_limited = patch_value_outside_vicinity_limit(
+        field=field,
+        center=center,
+        space_limit=space_limit,
+        vicinity_limit=vicinity_limit,
+        field_size=field_size,
+    )
+
+    field_limited_zoomed = clip_and_resize(
+        field=field_limited, field_size=field_size, clip_size_factor=2
+    )
+
+    return field_limited_zoomed
+
+
 def apply_distribution(
         field: np.array,
         position: np.array,
-        sigma: float = 10,
+        space_factor: float = 1,
         amplitude: float = 1,
         operation="add",
 ):
+    BASE_SIGMA = 10
+    sigma = BASE_SIGMA / space_factor
+
     x, y = position
     grid_x, grid_y = np.meshgrid(
-        np.arange(field.shape[0]), np.arange(field.shape[1]), indexing="ij"
+        np.arange(field.shape[0]), np.arange(field.shape[1]), indexing="xy"
     )
     gaussian = amplitude * np.exp(
         -((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma ** 2)
@@ -86,10 +139,7 @@ def filter_points_in_vicinity(
 def rotate_points(
         points: np.array, center: np.array = np.array([0, 0]), theta: float = 0
 ) -> np.array:
-    # Convert theta to radians
     theta_rad = np.radians(theta)
-
-    # Define the rotation matrix
     rotation_matrix = np.array(
         [
             [np.cos(theta_rad), -np.sin(theta_rad)],
@@ -113,43 +163,43 @@ def patch_value_outside_vicinity_limit(
         field: np.array,
         center: np.array,
         vicinity_limit: np.array,
-        space_limits: np.array,
-        field_size: np.array = np.array([84, 84]),
+        space_limit: SpaceLimit,
+        field_size: np.array,
         value: float = -1,
 ):
     center_x, center_y = center
 
-    field_limits = {
-        "x_min": to_field_position(
-            [space_limits["x_min"], center_y],
+    field_limit: SpaceLimit = SpaceLimit(
+        x_min=to_field_position(
+            [space_limit.x_min, center_y],
             center,
             field_size,
             vicinity_limit,
         )[0],
-        "x_max": to_field_position(
-            [space_limits["x_max"], center_y],
+        x_max=to_field_position(
+            [space_limit.x_max, center_y],
             center,
             field_size,
             vicinity_limit,
         )[0],
-        "y_min": to_field_position(
-            [center_x, space_limits["y_min"]],
+        y_min=to_field_position(
+            [center_x, space_limit.y_min],
             center,
             field_size,
             vicinity_limit,
         )[1],
-        "y_max": to_field_position(
-            [center_x, space_limits["y_max"]],
+        y_max=to_field_position(
+            [center_x, space_limit.y_max],
             center,
             field_size,
             vicinity_limit,
         )[1],
-    }
+    )
 
-    field[:, : field_limits["x_min"]] = value
-    field[:, field_limits["x_max"] + 1:] = value
-    field[: field_limits["y_min"], :] = value
-    field[field_limits["y_max"] + 1:, :] = value
+    field[:, : int(field_limit.x_min)] = value
+    field[:, int(field_limit.x_max + 1):] = value
+    field[: int(field_limit.y_min), :] = value
+    field[int(field_limit.y_max) + 1:, :] = value
 
     return field
 
