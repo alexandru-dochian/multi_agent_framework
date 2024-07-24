@@ -19,24 +19,16 @@
           },
           "modulations": [
             {
-              "x": 0,
+              "x": -0.5,
               "y": 0.5
             },
             {
-              "x": -1,
+              "x": -0.5,
+              "y": 1
+            },
+            {
+              "x": -0.5,
               "y": 1.5
-            },
-            {
-              "x": 0,
-              "y": 1.5
-            },
-            {
-              "x": 0,
-              "y": 0.5
-            },
-            {
-              "x": -1,
-              "y": 0.5
             }
           ],
           "rotation_center": {
@@ -155,7 +147,7 @@
       "class_name": "PositionLogger",
       "params": {
         "config": {
-          "experiment_dir": "default"
+          "experiment_dir": "spin"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
