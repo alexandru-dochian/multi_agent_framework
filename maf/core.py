@@ -115,7 +115,9 @@ class FieldState(PositionState):
     field: Field
     angle: DroneAngle
 
-    def __init__(self, position: Position = None, field: Field = None, angle: DroneAngle = None):
+    def __init__(
+        self, position: Position = None, field: Field = None, angle: DroneAngle = None
+    ):
         super().__init__(position)
         self.field = field
         self.angle = angle

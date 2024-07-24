@@ -12,18 +12,16 @@ REWARD_FUNCTIONS = {
 
 
 def generate_field(
-        field_size: list[float],
-        center: np.array,
-        neighbours: np.array,
-        modulations: np.array,
-        vicinity_limit: np.array,
-        space_limit: SpaceLimit,
+    field_size: list[float],
+    center: np.array,
+    neighbours: np.array,
+    modulations: np.array,
+    vicinity_limit: np.array,
+    space_limit: SpaceLimit,
 ):
     field: np.array = np.zeros(field_size)
 
-    neighbours: np.array = filter_points_in_vicinity(
-        neighbours, center, vicinity_limit
-    )
+    neighbours: np.array = filter_points_in_vicinity(neighbours, center, vicinity_limit)
     modulations: np.array = filter_points_in_vicinity(
         modulations, center, vicinity_limit
     )
@@ -60,11 +58,11 @@ def generate_field(
 
 
 def apply_distribution(
-        field: np.array,
-        position: np.array,
-        space_factor: float = 1,
-        amplitude: float = 1,
-        operation="add",
+    field: np.array,
+    position: np.array,
+    space_factor: float = 1,
+    amplitude: float = 1,
+    operation="add",
 ):
     BASE_SIGMA = 10
     sigma = BASE_SIGMA / space_factor
@@ -74,7 +72,7 @@ def apply_distribution(
         np.arange(field.shape[0]), np.arange(field.shape[1]), indexing="xy"
     )
     gaussian = amplitude * np.exp(
-        -((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma ** 2)
+        -((grid_x - x) ** 2 + (grid_y - y) ** 2) / (2 * sigma**2)
     )
 
     if operation == "add":
@@ -90,10 +88,10 @@ def apply_distribution(
 
 
 def to_field_position(
-        point: np.array,
-        center: list[float],
-        field_size: list[float],
-        vicinity_limit: list[float],
+    point: np.array,
+    center: list[float],
+    field_size: list[float],
+    vicinity_limit: list[float],
 ) -> np.array:
     limit_x, limit_y = vicinity_limit
     field_x, field_y = field_size
@@ -116,7 +114,7 @@ def to_field_position(
 
 
 def filter_points_in_vicinity(
-        points: np.array, center_point: list[float], vicinity_limit: list[float]
+    points: np.array, center_point: list[float], vicinity_limit: list[float]
 ) -> np.array:
     # vicinity limit
     x_min, x_max = (
@@ -133,11 +131,11 @@ def filter_points_in_vicinity(
         & (points[:, 0] <= x_max)
         & (points[:, 1] >= y_min)
         & (points[:, 1] <= y_max)
-        ]
+    ]
 
 
 def rotate_points(
-        points: np.array, center: np.array = np.array([0, 0]), theta: float = 0
+    points: np.array, center: np.array = np.array([0, 0]), theta: float = 0
 ) -> np.array:
     theta_rad = np.radians(theta)
     rotation_matrix = np.array(
@@ -160,12 +158,12 @@ def rotate_points(
 
 
 def patch_value_outside_vicinity_limit(
-        field: np.array,
-        center: np.array,
-        vicinity_limit: np.array,
-        space_limit: SpaceLimit,
-        field_size: np.array,
-        value: float = -1,
+    field: np.array,
+    center: np.array,
+    vicinity_limit: np.array,
+    space_limit: SpaceLimit,
+    field_size: np.array,
+    value: float = -1,
 ):
     center_x, center_y = center
 
@@ -197,15 +195,15 @@ def patch_value_outside_vicinity_limit(
     )
 
     field[:, : int(field_limit.x_min)] = value
-    field[:, int(field_limit.x_max + 1):] = value
+    field[:, int(field_limit.x_max + 1) :] = value
     field[: int(field_limit.y_min), :] = value
-    field[int(field_limit.y_max) + 1:, :] = value
+    field[int(field_limit.y_max) + 1 :, :] = value
 
     return field
 
 
 def clip_and_resize(
-        field: np.array, field_size: list[float], clip_size_factor: float = 2
+    field: np.array, field_size: list[float], clip_size_factor: float = 2
 ):
     field_x, field_y = field_size
 
@@ -217,8 +215,8 @@ def clip_and_resize(
 
     # Clip
     clipped_tensor = field[
-                     start_x: start_x + clip_size_x, start_y: start_y + clip_size_y
-                     ]
+        start_x : start_x + clip_size_x, start_y : start_y + clip_size_y
+    ]
 
     # Resize
     return zoom(
@@ -244,9 +242,9 @@ def pooling_to_3x3(field: np.array, func_name="sum"):
     for i in range(3):
         for j in range(3):
             block = field[
-                    i * block_size[0]: (i + 1) * block_size[0],
-                    j * block_size[1]: (j + 1) * block_size[1],
-                    ]
+                i * block_size[0] : (i + 1) * block_size[0],
+                j * block_size[1] : (j + 1) * block_size[1],
+            ]
             result[i, j] = func(block)
 
     return result

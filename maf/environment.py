@@ -5,8 +5,15 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from maf import field_modulation
-from maf.core import Config, Communicator, ProcessInitConfig, State, Position, SpaceLimit, \
-    FieldModulationEnvironmentState
+from maf.core import (
+    Config,
+    Communicator,
+    ProcessInitConfig,
+    State,
+    Position,
+    SpaceLimit,
+    FieldModulationEnvironmentState,
+)
 from maf.communicator import get_communicator
 
 
@@ -39,10 +46,14 @@ class FieldModulationEnvironment(Environment):
     communicator: Communicator
 
     def __init__(self, config: dict, communicator: dict):
-        config: FieldModulationEnvironmentConfig = FieldModulationEnvironmentConfig(**config)
+        config: FieldModulationEnvironmentConfig = FieldModulationEnvironmentConfig(
+            **config
+        )
         state: FieldModulationEnvironmentState = FieldModulationEnvironmentState(
-            modulations=np.array(list(map(lambda position: position.to_numpy_2d(), config.modulations))),
-            space_limit=config.space_limit
+            modulations=np.array(
+                list(map(lambda position: position.to_numpy_2d(), config.modulations))
+            ),
+            space_limit=config.space_limit,
         )
         super().__init__(
             config,
@@ -62,12 +73,12 @@ class FieldModulationEnvironment(Environment):
         self.state.modulations = field_modulation.rotate_points(
             self.state.modulations,
             self.config.rotation_center.to_numpy_2d(),
-            self.config.theta
+            self.config.theta,
         )
 
 
 def spawn_environment(
-        init_config: ProcessInitConfig,
+    init_config: ProcessInitConfig,
 ):
     """
     This method is the entrypoint for the environment process
