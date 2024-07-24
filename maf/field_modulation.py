@@ -31,7 +31,7 @@ def generate_field(
             neighbour, center, field_size, vicinity_limit
         )
         field = apply_distribution(
-            field, relative_neighbour_field_pos, operation="subtract", space_factor=1, amplitude=2
+            field, relative_neighbour_field_pos, operation="subtract", space_factor=1, amplitude=1.5
         )
 
     for modulation in modulations:
@@ -39,7 +39,7 @@ def generate_field(
             modulation, center, field_size, vicinity_limit
         )
         field = apply_distribution(
-            field, relative_modulation_field_pos, operation="add", space_factor=2, amplitude=1
+            field, relative_modulation_field_pos, operation="add", space_factor=1, amplitude=1
         )
 
     field_limited = patch_value_outside_vicinity_limit(
@@ -116,6 +116,9 @@ def to_field_position(
 def filter_points_in_vicinity(
         points: np.array, center_point: list[float], vicinity_limit: list[float]
 ) -> np.array:
+    if len(points) == 0:
+        return points
+
     # vicinity limit
     x_min, x_max = (
         center_point[0] - vicinity_limit[0],

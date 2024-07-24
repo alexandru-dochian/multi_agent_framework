@@ -19,23 +19,23 @@
           },
           "modulations": [
             {
+              "x": -1,
+              "y": 1
+            },
+            {
               "x": 0,
-              "y": 0.5
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 0
             },
             {
               "x": -1,
-              "y": 1.5
+              "y": 0
             },
             {
-              "x": 0,
-              "y": 1.5
-            },
-            {
-              "x": 0,
-              "y": 0.5
-            },
-            {
-              "x": -1,
+              "x": -0.5,
               "y": 0.5
             }
           ],
@@ -43,7 +43,7 @@
             "x": -0.5,
             "y": 0.5
           },
-          "theta": 5
+          "theta": 2
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -59,12 +59,12 @@
         "config": {
           "delay": 100,
           "agent_id": "A",
-          "default_height": 0.5,
-          "max_vel": 0.4,
+          "default_height": 0.55,
+          "max_vel": 0.35,
           "initial_position": {
-            "x": -0.5,
-            "y": 0.5,
-            "z": 0.55
+            "x": -1,
+            "y": 1,
+            "z": 0
           },
           "total_time": 600
         },
@@ -83,12 +83,12 @@
         "config": {
           "delay": 100,
           "agent_id": "B",
-          "default_height": 0.5,
-          "max_vel": 0.4,
+          "default_height": 0.55,
+          "max_vel": 0.35,
           "initial_position": {
-            "x": -0.5,
-            "y": 0.5,
-            "z": 0.55
+            "x": 0,
+            "y": 1,
+            "z": 0
           },
           "total_time": 600
         },
@@ -107,13 +107,13 @@
         "config": {
           "delay": 100,
           "agent_id": "C",
-          "default_height": 0.5,
-          "max_vel": 0.4,
+          "default_height": 0.55,
+          "max_vel": 0.35,
           "total_time": 600,
           "initial_position": {
-            "x": -0.5,
-            "y": 0.5,
-            "z": 0.55
+            "x": 0,
+            "y": 0,
+            "z": 0
           }
         },
         "controller": {
@@ -131,13 +131,37 @@
         "config": {
           "delay": 100,
           "agent_id": "D",
-          "default_height": 0.5,
-          "max_vel": 0.4,
+          "default_height": 0.55,
+          "max_vel": 0.35,
+          "total_time": 600,
+          "initial_position": {
+            "x": -1,
+            "y": 0,
+            "z": 0
+          }
+        },
+        "controller": {
+          "class_name": "HillClimbingController"
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    },
+    {
+      "worker": "Thread",
+      "class_name": "VirtualDrone2D",
+      "params": {
+        "config": {
+          "delay": 100,
+          "agent_id": "X",
+          "default_height": 0.55,
+          "max_vel": 0.35,
           "total_time": 600,
           "initial_position": {
             "x": -0.5,
             "y": 0.5,
-            "z": 0.55
+            "z": 0
           }
         },
         "controller": {
@@ -155,7 +179,22 @@
       "class_name": "PositionLogger",
       "params": {
         "config": {
-          "experiment_dir": "default"
+          "experiment_dir": "circle_around_center"
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    },
+    {
+      "worker": "Process",
+      "class_name": "FieldStateLogger",
+      "params": {
+        "config": {
+          "experiment_dir": "circle_around_center",
+          "agent_id": "X",
+          "gui_enabled": "true",
+          "delay": 100
         },
         "communicator": {
           "class_name": "RedisCommunicator"

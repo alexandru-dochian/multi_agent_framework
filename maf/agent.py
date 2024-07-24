@@ -33,7 +33,7 @@ from maf.core import (
 )
 
 # TODO: refactor
-VICINITY_LIMIT = [1, 1]
+VICINITY_LIMIT = [0.5, 0.5]
 FIELD_SIZE: list[int] = [84, 84]
 
 
@@ -44,11 +44,11 @@ class Agent(ABC):
     communicator: Communicator
 
     def __init__(
-        self,
-        config: Config,
-        state: State,
-        controller: Controller,
-        communicator: Communicator,
+            self,
+            config: Config,
+            state: State,
+            controller: Controller,
+            communicator: Communicator,
     ):
         self.config = config
         self.state = state
@@ -81,9 +81,14 @@ class VirtualDrone2D(Agent):
     communicator: Communicator
 
     def __init__(self, config: dict, controller: dict, communicator: dict):
+        config: VirtualDrone2DConfig = VirtualDrone2DConfig(**config)
+        state: FieldState = FieldState(
+            position=config.initial_position,
+            field=Field(data=np.zeros(FIELD_SIZE)),
+        )
         super().__init__(
-            VirtualDrone2DConfig(**config),
-            FieldState(),
+            config,
+            state,
             get_controller(controller),
             get_communicator(communicator),
         )
@@ -97,25 +102,18 @@ class VirtualDrone2D(Agent):
         # register initial state
         self.communicator.broadcast_agent_state(
             self.config.agent_id,
-            FieldState(
-                position=self.config.initial_position,
-                field=Field(data=np.zeros(FIELD_SIZE)),
-            ),
+            self.state,
         )
 
         spent_time = 0
         while (spent_time < self.config.total_time) and self.communicator.is_active():
-            state: FieldState = self.communicator.fetch_agent_state(
-                self.config.agent_id
-            )
-
-            self.controller.set_state(state)
+            self.controller.set_state(self.state)
             action: SimpleAction2D = self.controller.predict()
             command: VelocityCommand2D = self.action_to_command(action)
             command = command.scale(self.config.max_vel)
 
-            new_state = self.compute_new_state(state, command)
-            self.communicator.broadcast_agent_state(self.config.agent_id, new_state)
+            self.state = self.compute_new_state(self.state, command)
+            self.communicator.broadcast_agent_state(self.config.agent_id, self.state)
 
             delay_seconds = self.config.delay / 1000
             time.sleep(delay_seconds)
@@ -124,13 +122,14 @@ class VirtualDrone2D(Agent):
         logging.info(f"Finished [{self.config.agent_id}]!")
 
     def compute_new_state(
-        self, old_state: FieldState, command: VelocityCommand2D
+            self, old_state: FieldState, command: VelocityCommand2D
     ) -> FieldState:
         delay_seconds: float = self.config.delay / 1000
+
         new_position: Position = Position(
             x=old_state.position.x + command.vel_x * delay_seconds,
             y=old_state.position.y + command.vel_y * delay_seconds,
-            z=old_state.position.z,
+            z=self.config.default_height,
         )
 
         return FieldState(
@@ -231,34 +230,28 @@ class CFDrone2D(Agent):
             r"radio://\d/\d{1,3}/\dM/[A-Z0-9]{10}", self.config.agent_id
         ), f"Invalid agent id [{self.config.agent_id}] for crazyflie"
         self.hex_address: str = self.config.agent_id[-10:]
-        self.deck_attached_event: Event = Event()
+        self.lighthouse_deck_attached_event: Event = Event()
 
     def run(self):
         def param_deck_flow_anon(_, value_str):
-            value = int(value_str)
-            logging.info(value)
-            if value:
-                self.deck_attached_event.set()
-                logging.info(f"CFDrone2D [{self.hex_address}] | Deck flow is attached!")
-            else:
-                logging.info(
-                    f"CFDrone2D [{self.hex_address}] | Deck flow is NOT attached!"
-                )
+            if int(value_str):
+                self.lighthouse_deck_attached_event.set()
 
         logging.info(f"Initializing [{self.hex_address}]...")
         with SyncCrazyflie(
-            self.config.agent_id, Crazyflie(rw_cache=f"./cache/{self.hex_address}")
+                self.config.agent_id, Crazyflie(rw_cache=f"./cache/{self.hex_address}")
         ) as scf:
-            scf.wait_for_params()
-            ...
             scf.cf.param.add_update_callback(
-                group="deck", name="bcFlow2", cb=param_deck_flow_anon
+                group="deck", name="bcLighthouse4", cb=param_deck_flow_anon
             )
-            time.sleep(1)
+            scf.wait_for_params()
+
+            if not self.lighthouse_deck_attached_event.wait(timeout=2):
+                raise Exception(f"Lighthouse deck missing on {self.hex_address}!")
+
             logconf = LogConfig(
                 name="Position", period_in_ms=self.config.log_interval_ms
             )
-
             for log_variable in self.config.log_variables:
                 logconf.add_variable(log_variable, "float")
 
@@ -267,6 +260,7 @@ class CFDrone2D(Agent):
 
             try:
                 logconf.start()
+
                 self.control_loop(scf)
             finally:
                 logconf.stop()
@@ -293,7 +287,7 @@ class CFDrone2D(Agent):
             center=[position.x, position.y],
             neighbours=self.get_neighbours(),
             modulations=environment_state.modulations,
-            vicinity_limit=[1.5, 1.5],
+            vicinity_limit=[1, 1],
             space_limit=environment_state.space_limit,
         )
 
@@ -326,7 +320,7 @@ class CFDrone2D(Agent):
             self.communicator.register_agent(self.config.agent_id)
             spent_time = 0
             while (
-                spent_time < self.config.total_time
+                    spent_time < self.config.total_time
             ) and self.communicator.is_active():
                 # state gets updated asynchronously in `self.log_pos_callback`
                 self.controller.set_state(self.state)
@@ -344,7 +338,7 @@ class CFDrone2D(Agent):
         logging.info(f"CFDrone2D {self.hex_address} finished!")
 
     def command_yaw_change(
-        self, target_angles=None, rate_of_change: float = 3, epsilon: float = 3
+            self, target_angles=None, rate_of_change: float = 5, epsilon: float = 3
     ) -> float:
         if target_angles is None:
             # Will keep the drone pointing on the ox axis

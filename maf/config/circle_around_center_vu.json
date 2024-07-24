@@ -5,6 +5,51 @@
     }
   ],
   "environments": [
+    {
+      "worker": "Process",
+      "class_name": "FieldModulationEnvironment",
+      "params": {
+        "config": {
+          "delay": 100,
+          "space_limit": {
+            "x_min": -2.5,
+            "x_max": 1.5,
+            "y_min": -1.0,
+            "y_max": 2.0
+          },
+          "modulations": [
+            {
+              "x": -1,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 1
+            },
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": -1,
+              "y": 0
+            },
+            {
+              "x": -0.5,
+              "y": 0.5
+            }
+          ],
+          "rotation_center": {
+            "x": -0.5,
+            "y": 0.5
+          },
+          "theta": 2
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    }
   ],
   "agents": [
     {
@@ -12,127 +57,21 @@
       "class_name": "CFDrone2D",
       "params": {
         "config": {
-          "agent_id": "radio://0/100/2M/E7E7E7E707",
-          "clock_freq": 10,
-          "default_height": 0.55,
-          "max_vel": 0.35,
-          "log_variables": [
-            "stateEstimate.x",
-            "stateEstimate.y",
-            "stateEstimate.z"
-          ],
-          "log_interval_ms": 200,
-          "total_time": 600
-        },
-        "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": 0.5,
-                "y": 0.5
-              }
-            }
-          }
-        },
-        "communicator": {
-          "class_name": "RedisCommunicator"
-        }
-      }
-    },
-    {
-      "worker": "Thread",
-      "class_name": "CFDrone2D",
-      "params": {
-        "config": {
-          "agent_id": "radio://0/100/2M/E7E7E7E708",
-          "clock_freq": 10,
-          "default_height": 0.55,
-          "max_vel": 0.35,
-          "log_variables": [
-            "stateEstimate.x",
-            "stateEstimate.y",
-            "stateEstimate.z"
-          ],
-          "log_interval_ms": 200,
-          "total_time": 600
-        },
-        "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": 0.5,
-                "y": -0.5
-              }
-            }
-          }
-        },
-        "communicator": {
-          "class_name": "RedisCommunicator"
-        }
-      }
-    },
-    {
-      "worker": "Thread",
-      "class_name": "CFDrone2D",
-      "params": {
-        "config": {
-          "agent_id": "radio://0/100/2M/E7E7E7E704",
-          "clock_freq": 10,
-          "default_height": 0.55,
-          "max_vel": 0.35,
-          "log_variables": [
-            "stateEstimate.x",
-            "stateEstimate.y",
-            "stateEstimate.z"
-          ],
-          "log_interval_ms": 200,
-          "total_time": 600
-        },
-        "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": -0.5,
-                "y": -0.5
-              }
-            }
-          }
-        },
-        "communicator": {
-          "class_name": "RedisCommunicator"
-        }
-      }
-    },
-    {
-      "worker": "Thread",
-      "class_name": "CFDrone2D",
-      "params": {
-        "config": {
+          "delay": 100,
           "agent_id": "radio://0/100/2M/E7E7E7E70A",
-          "clock_freq": 10,
           "default_height": 0.55,
           "max_vel": 0.35,
           "log_variables": [
             "stateEstimate.x",
             "stateEstimate.y",
-            "stateEstimate.z"
+            "stateEstimate.z",
+            "stateEstimate.yaw"
           ],
           "log_interval_ms": 200,
           "total_time": 600
         },
         "controller": {
-          "class_name": "GoToPointController",
-          "params": {
-            "config": {
-              "target_position": {
-                "x": -0.5,
-                "y": 0.5
-              }
-            }
-          }
+          "class_name": "HillClimbingController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -144,25 +83,99 @@
       "class_name": "CFDrone2D",
       "params": {
         "config": {
-          "agent_id": "radio://0/100/2M/E7E7E7E706",
-          "clock_freq": 10,
+          "delay": 100,
+          "agent_id": "radio://0/100/2M/E7E7E7E702",
           "default_height": 0.55,
           "max_vel": 0.35,
           "log_variables": [
             "stateEstimate.x",
             "stateEstimate.y",
-            "stateEstimate.z"
+            "stateEstimate.z",
+            "stateEstimate.yaw"
           ],
           "log_interval_ms": 200,
           "total_time": 600
         },
         "controller": {
-          "class_name": "KeyboardController",
-          "params": {
-            "config": {
-              "agent_id": "radio://0/100/2M/E7E7E7E706"
-            }
-          }
+          "class_name": "HillClimbingController"
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    },
+    {
+      "worker": "Thread",
+      "class_name": "CFDrone2D",
+      "params": {
+        "config": {
+          "delay": 100,
+          "agent_id": "radio://0/100/2M/E7E7E7E706",
+          "default_height": 0.55,
+          "max_vel": 0.35,
+          "log_variables": [
+            "stateEstimate.x",
+            "stateEstimate.y",
+            "stateEstimate.z",
+            "stateEstimate.yaw"
+          ],
+          "log_interval_ms": 200,
+          "total_time": 600
+        },
+        "controller": {
+          "class_name": "HillClimbingController"
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    },
+    {
+      "worker": "Thread",
+      "class_name": "CFDrone2D",
+      "params": {
+        "config": {
+          "delay": 100,
+          "agent_id": "radio://0/100/2M/E7E7E7E708",
+          "default_height": 0.55,
+          "max_vel": 0.35,
+          "log_variables": [
+            "stateEstimate.x",
+            "stateEstimate.y",
+            "stateEstimate.z",
+            "stateEstimate.yaw"
+          ],
+          "log_interval_ms": 200,
+          "total_time": 600
+        },
+        "controller": {
+          "class_name": "HillClimbingController"
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    },
+    {
+      "worker": "Thread",
+      "class_name": "CFDrone2D",
+      "params": {
+        "config": {
+          "delay": 100,
+          "agent_id": "radio://0/100/2M/E7E7E7E709",
+          "default_height": 0.55,
+          "max_vel": 0.35,
+          "log_variables": [
+            "stateEstimate.x",
+            "stateEstimate.y",
+            "stateEstimate.z",
+            "stateEstimate.yaw"
+          ],
+          "log_interval_ms": 200,
+          "total_time": 600
+        },
+        "controller": {
+          "class_name": "HillClimbingController"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -176,9 +189,7 @@
       "class_name": "PositionLogger",
       "params": {
         "config": {
-          "experiment_dir": "default_vu",
-          "gui_enabled": "true",
-          "delay": 100
+          "experiment_dir": "circle_around_center_vu"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -190,9 +201,10 @@
       "class_name": "FieldStateLogger",
       "params": {
         "config": {
-          "experiment_dir": "default_vu",
-          "agent_id": "radio://0/100/2M/E7E7E7E706",
-          "gui_enabled": "true"
+          "experiment_dir": "circle_around_center_vu",
+          "agent_id": "radio://0/100/2M/E7E7E7E70A",
+          "gui_enabled": "true",
+          "delay": 100
         },
         "communicator": {
           "class_name": "RedisCommunicator"
