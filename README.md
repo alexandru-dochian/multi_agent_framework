@@ -4,15 +4,19 @@
 
 Install all the necessary operating system dependencies and set up python virtual environment with `poetry`.
 
-Currently supporting:
-
-- Ubuntu
-- MacOS (TODO)
-- Windows 10 (TODO)
+#### Ubuntu
 
 ```bash
 ./setup.sh
 ```
+
+#### Windows 10
+
+TODO
+
+#### MacOS
+
+TODO
 
 ### Run experiment
 

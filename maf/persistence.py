@@ -11,17 +11,13 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 logger: logging.Logger = logger_config.get_logger(__name__)
 
 
-def create_directory(directory: str):
-    os.makedirs(directory, exist_ok=True)
-
-
 def store(experiment_dir: str, logger: str, content: dict):
     dir_path: str = os.path.join(
         DATA_DIR,
         experiment_dir,
         logger,
     )
-    create_directory(dir_path)
+    os.makedirs(dir_path, exist_ok=True)
 
     current_time: int = utils.get_current_time()
     random_string: str = utils.generate_random_string()
