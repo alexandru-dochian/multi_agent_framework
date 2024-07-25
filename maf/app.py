@@ -5,6 +5,7 @@ import multiprocessing as mp
 import time
 from typing import Union
 
+from maf import logger_config
 from maf.agent import spawn_agent
 from maf.communicator import get_communicator
 from maf.core import Communicator, Config, ObjectInitConfig, ProcessInitConfig, Worker
@@ -12,6 +13,8 @@ from maf.environment import spawn_environment
 from maf.log_handler import spawn_log_handler
 
 AppProcess = Union[threading.Thread, mp.Process]
+
+logger: logging.Logger = logger_config.get_logger(__name__)
 
 
 class AppConfig(Config):
@@ -62,21 +65,8 @@ class App:
                 )
             )
 
-    def start_processes(self):
-        try:
-            for p in self.processes:
-                logging.info(f"Starting process {p.name}")
-                p.start()
-                logging.info(f"Process {p.name} started successfully")
-        except Exception as e:
-            logging.error(
-                f"Error occurred while starting processes: {e}", exc_info=True
-            )
-
-            # Optionally, you might want to clean up or terminate processes here
-
     def start(self):
-        print("Starting application")
+        logger.info("Starting application")
         for communicator in self.communicators:
             communicator.activate()
 
@@ -84,9 +74,10 @@ class App:
         for p in self.processes:
             try:
                 p.start()
-                logging.info(f"Process {p.name} started successfully")
+                logger.debug(f"Process {p.name} started successfully")
             except:
-                logging.exception(f"Process {p.name} failed to start")
+                logger.exception(f"Process {p.name} failed to start")
+                p.join()
 
         while all([communicator.is_active() for communicator in self.communicators]):
             time.sleep(0.1)
@@ -95,11 +86,11 @@ class App:
         for p in self.processes:
             try:
                 p.join()
-                logging.info(f"Process {p.name} finished successfully")
+                logger.debug(f"Process {p.name} finished successfully")
             except:
-                logging.exception(f"Process {p.name} failed to finish")
+                logger.exception(f"Process {p.name} failed to finish")
 
-        print("Finished application")
+        logger.info("Finished application")
 
 
 def get_worker_type(worker: Worker) -> type[AppProcess]:

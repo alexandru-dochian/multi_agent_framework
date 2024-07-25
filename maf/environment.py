@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from maf import field_modulation
+from maf import field_modulation, logger_config
 from maf.core import (
     Config,
     Communicator,
@@ -15,6 +15,8 @@ from maf.core import (
     FieldModulationEnvironmentState,
 )
 from maf.communicator import get_communicator
+
+logger: logging.Logger = logger_config.get_logger(__name__)
 
 
 class Environment(ABC):
@@ -78,16 +80,16 @@ class FieldModulationEnvironment(Environment):
 
 
 def spawn_environment(
-    init_config: ProcessInitConfig,
+        init_config: ProcessInitConfig,
 ):
     """
     This method is the entrypoint for the environment process
     """
-    logging.info(f"Spawn {init_config.class_name} environment {init_config.worker}!")
+    logger.info(f"Spawn {init_config.class_name} environment {init_config.worker}!")
     environment_class: type[Environment] = globals()[init_config.class_name]
     assert issubclass(
         environment_class, Environment
     ), f"Environment [{init_config.class_name}] was not found"
     environment: Environment = environment_class(**init_config.params)
     environment.run()
-    logging.info(f"Finished {init_config.class_name} environment!")
+    logger.info(f"Finished {init_config.class_name} environment!")

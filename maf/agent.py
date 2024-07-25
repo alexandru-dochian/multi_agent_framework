@@ -13,7 +13,7 @@ from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.positioning.motion_commander import MotionCommander
 
-from maf import field_modulation
+from maf import field_modulation, logger_config
 from maf.communicator import Communicator, get_communicator
 from maf.controller import get_controller, Controller
 from maf.core import (
@@ -31,6 +31,8 @@ from maf.core import (
     DroneAngle,
     FieldModulationEnvironmentState,
 )
+
+logger: logging.Logger = logger_config.get_logger(__name__)
 
 # TODO: refactor
 VICINITY_LIMIT = [0.5, 0.5]
@@ -94,7 +96,7 @@ class VirtualDrone2D(Agent):
         )
 
     def run(self):
-        logging.info(f"Starting [{self.config.agent_id}]!")
+        logger.info(f"Starting [{self.config.agent_id}]!")
 
         # register on communicator
         self.communicator.register_agent(self.config.agent_id)
@@ -119,7 +121,7 @@ class VirtualDrone2D(Agent):
             time.sleep(delay_seconds)
             spent_time += delay_seconds
 
-        logging.info(f"Finished [{self.config.agent_id}]!")
+        logger.info(f"Finished [{self.config.agent_id}]!")
 
     def compute_new_state(
             self, old_state: FieldState, command: VelocityCommand2D
@@ -237,7 +239,7 @@ class CFDrone2D(Agent):
             if int(value_str):
                 self.lighthouse_deck_attached_event.set()
 
-        logging.info(f"Initializing [{self.hex_address}]...")
+        logger.info(f"Initializing [{self.hex_address}]...")
         with SyncCrazyflie(
                 self.config.agent_id, Crazyflie(rw_cache=f"./cache/{self.hex_address}")
         ) as scf:
@@ -310,11 +312,11 @@ class CFDrone2D(Agent):
         return np.array(neighbours)
 
     def control_loop(self, scf):
-        logging.info(f"CFDrone2D {self.hex_address} starts!")
+        logger.info(f"CFDrone2D {self.hex_address} starts!")
         with MotionCommander(scf, default_height=self.config.default_height) as mc:
-            logging.info(f"CFDrone2D {self.hex_address} | Taking off!")
+            logger.info(f"CFDrone2D {self.hex_address} | Taking off!")
             time.sleep(2)  # necessary for taking-off
-            logging.info(f"CFDrone2D {self.hex_address} | Spawned | in air!")
+            logger.info(f"CFDrone2D {self.hex_address} | Spawned | in air!")
 
             # register on communicator
             self.communicator.register_agent(self.config.agent_id)
@@ -335,7 +337,7 @@ class CFDrone2D(Agent):
                 time.sleep(delay_seconds)
                 spent_time += delay_seconds
 
-        logging.info(f"CFDrone2D {self.hex_address} finished!")
+        logger.info(f"CFDrone2D {self.hex_address} finished!")
 
     def command_yaw_change(
             self, target_angles=None, rate_of_change: float = 5, epsilon: float = 3
@@ -399,7 +401,7 @@ def spawn_agent(init_config: ProcessInitConfig):
     """
     This method is the entrypoint for the agent process
     """
-    logging.info(f"Spawn {init_config.class_name} agent {init_config.worker}!")
+    logger.info(f"Spawn {init_config.class_name} agent {init_config.worker}!")
     agent_class: type[Agent] = globals()[init_config.class_name]
     assert issubclass(
         agent_class, Agent

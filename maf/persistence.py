@@ -1,11 +1,14 @@
+import logging
 import os.path
 import pickle
 from os import listdir
 from os.path import isfile
 
-from maf import utils
+from maf import utils, logger_config
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+
+logger: logging.Logger = logger_config.get_logger(__name__)
 
 
 def create_directory(directory: str):
@@ -39,6 +42,3 @@ def load(experiment_dir: str, logger: str, file_name: str) -> object:
     file_path: str = os.path.join(DATA_DIR, experiment_dir, logger, file_name)
     with open(file_path, "rb") as file:
         return pickle.load(file)
-
-
-print(os.path.abspath(DATA_DIR))

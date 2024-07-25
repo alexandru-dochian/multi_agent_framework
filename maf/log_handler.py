@@ -6,7 +6,9 @@ from abc import ABC, abstractmethod
 
 from maf.core import ProcessInitConfig, Config, PositionState, FieldState, Field
 from maf.communicator import Communicator, get_communicator
-from maf import persistence
+from maf import persistence, logger_config
+
+logger: logging.Logger = logger_config.get_logger(__name__)
 
 
 class LogHandler(ABC):
@@ -24,8 +26,8 @@ class LogHandler(ABC):
 
 class PositionLoggerConfig(Config):
     experiment_dir: str
-    gui_enabled: bool = True
     delay: int = 500  # ms
+    reset_zoom: bool = False
 
 
 class PositionLogger(LogHandler):
@@ -70,7 +72,9 @@ class PositionLogger(LogHandler):
                     z_new = np.array(z_new)
 
                     self.points.mlab_source.reset(x=x_new, y=y_new, z=z_new)
-                    self.scene.scene.reset_zoom()
+
+                    if self.config.reset_zoom:
+                        self.scene.scene.reset_zoom()
                     yield
             finally:
                 mlab.clf()
@@ -118,7 +122,17 @@ class PositionLogger(LogHandler):
             )  # Negative Y axis in green
 
         # Function to draw the grid on the XY plane in all quadrants
-        def draw_xy_grid(grid_size=3, grid_spacing=1.0):
+        def draw_xy_grid(grid_spacing=1.0):
+            # TODO: get from environment
+            x_min_limit = -2.5
+            x_max_limit = 1.5
+            y_min_limit = -1.0
+            y_max_limit = 2.0
+            grid_size = int(round(max(
+                x_max_limit - x_min_limit,
+                y_max_limit - y_min_limit,
+            )))
+
             for i in np.arange(-grid_size, grid_size + grid_spacing, grid_spacing):
                 mlab.plot3d(
                     [-grid_size, grid_size],
@@ -126,19 +140,16 @@ class PositionLogger(LogHandler):
                     [0, 0],
                     color=(0.7, 0.7, 0.7),
                     tube_radius=0.005,
-                )  # Horizontal lines
+                )
                 mlab.plot3d(
                     [i, i],
                     [-grid_size, grid_size],
                     [0, 0],
                     color=(0.7, 0.7, 0.7),
                     tube_radius=0.005,
-                )  # Vertical lines
+                )
 
-        # Draw the axes
         draw_axes()
-
-        # Draw the XY grid in all quadrants
         draw_xy_grid()
 
         self.animator: Animator = anim()
@@ -156,7 +167,6 @@ class PositionLogger(LogHandler):
 class FieldStateLoggerConfig(Config):
     agent_id: str
     experiment_dir: str
-    gui_enabled: bool = True
     delay: int = 500  # ms
 
 
@@ -247,13 +257,13 @@ def spawn_log_handler(init_config: ProcessInitConfig):
     """
     This method is the entrypoint for the logger process
     """
-    logging.info(f"Spawn {init_config.class_name} log handler {init_config.worker}!")
+    logger.info(f"Spawn {init_config.class_name} log handler {init_config.worker}!")
     log_handler_class: type[LogHandler] = globals()[init_config.class_name]
     assert issubclass(
         log_handler_class, LogHandler
     ), f"LogHandler [{init_config.class_name}] was not found"
     log_handler: LogHandler = log_handler_class(**init_config.params)
     log_handler.run()
-    logging.info(
+    logger.info(
         f"Finalized {init_config.class_name} log handler {init_config.worker}!"
     )

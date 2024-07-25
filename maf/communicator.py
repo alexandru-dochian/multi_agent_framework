@@ -4,7 +4,10 @@ import pickle
 
 import redis
 
+from maf import logger_config
 from maf.core import Communicator, Config, ObjectInitConfig, State
+
+logger: logging.Logger = logger_config.get_logger(__name__)
 
 
 class RedisCommunicatorConfig(Config):
@@ -33,7 +36,7 @@ class RedisCommunicator(Communicator):
         self.send(self.STOP_EVENT, False)
 
     def stop(self, signal, *kwargs):
-        logging.info(
+        logger.info(
             f"Signal [{signal}] received on [{os.getpid()}] of parent [{os.getppid()}]. Stopping communication!"
         )
         self.send(self.STOP_EVENT, True)
