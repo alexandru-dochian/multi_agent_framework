@@ -205,6 +205,7 @@ class HillClimbingController(Controller):
         field: np.array = self.state.field.data
         grid: np.array = field_modulation.pooling_to_3x3(
             field, self.config.pooling_function
+
         )
         if all_elements_close(grid):
             return SimpleAction2D.STOP

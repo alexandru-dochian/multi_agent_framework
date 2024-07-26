@@ -80,7 +80,7 @@ class FieldModulationEnvironment(Environment):
 
 
 def spawn_environment(
-        init_config: ProcessInitConfig,
+    init_config: ProcessInitConfig,
 ):
     """
     This method is the entrypoint for the environment process

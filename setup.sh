@@ -40,18 +40,21 @@ setup_ubuntu() {
   python3 -m pip install cfclient
 
   # USB permissions for Crazyradio dongle
-  # https://www.bitcraze.io/documentation/repository/crazyflie-lib-python/master/installation/usb_permissions/
   sudo groupadd plugdev
   sudo usermod -a -G plugdev "$USER"
 
   # Create and write the udev rules to /etc/udev/rules.d/99-bitcraze.rules
 cat <<EOF | sudo tee /etc/udev/rules.d/99-bitcraze.rules > /dev/null
+# https://www.bitcraze.io/documentation/repository/crazyflie-lib-python/master/installation/usb_permissions/
 # Crazyradio (normal operation)
 SUBSYSTEM=="usb", ATTRS{idVendor}=="1915", ATTRS{idProduct}=="7777", MODE="0664", GROUP="plugdev"
 # Bootloader
 SUBSYSTEM=="usb", ATTRS{idVendor}=="1915", ATTRS{idProduct}=="0101", MODE="0664", GROUP="plugdev"
 # Crazyflie (over USB)
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", MODE="0664", GROUP="plugdev"
+
+# Debugger (https://www.bitcraze.io/documentation/repository/crazyflie-firmware/master/development/openocd_gdb_debugging/)
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3748", MODE="0664", GROUP="plugdev"
 EOF
 
   # Reload udev rules to apply changes

@@ -1,21 +1,19 @@
-import logging
 import os.path
 import pickle
+import shutil
 from os import listdir
 from os.path import isfile
 
-from maf import utils, logger_config
+from maf import utils
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
-logger: logging.Logger = logger_config.get_logger(__name__)
 
-
-def store(experiment_dir: str, logger: str, content: dict):
+def store(experiment_dir: str, log_handler: str, content: dict):
     dir_path: str = os.path.join(
         DATA_DIR,
         experiment_dir,
-        logger,
+        log_handler,
     )
     os.makedirs(dir_path, exist_ok=True)
 
@@ -29,12 +27,22 @@ def store(experiment_dir: str, logger: str, content: dict):
         pickle.dump(content, f)
 
 
-def list_files(experiment_dir, logger: str) -> list[str]:
-    dir_path: str = os.path.join(DATA_DIR, experiment_dir, logger)
+def clear(experiment_dir: str, log_handler: str):
+    shutil.rmtree(
+        os.path.join(
+            DATA_DIR,
+            experiment_dir,
+            log_handler,
+        )
+    )
+
+
+def list_files(experiment_dir, log_handler: str) -> list[str]:
+    dir_path: str = os.path.join(DATA_DIR, experiment_dir, log_handler)
     return [f for f in listdir(dir_path) if isfile(os.path.join(dir_path, f))]
 
 
-def load(experiment_dir: str, logger: str, file_name: str) -> object:
-    file_path: str = os.path.join(DATA_DIR, experiment_dir, logger, file_name)
+def load(experiment_dir: str, log_handler: str, file_name: str) -> object:
+    file_path: str = os.path.join(DATA_DIR, experiment_dir, log_handler, file_name)
     with open(file_path, "rb") as file:
         return pickle.load(file)

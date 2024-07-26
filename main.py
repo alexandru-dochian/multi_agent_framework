@@ -13,7 +13,9 @@ logger: logging.Logger = logger_config.get_logger(__name__)
 
 def print_banner(experiment: str):
     text_in_banner: str = f" experiment = [{experiment}] "
-    custom_line_in_banner: str = "=" * 8 + text_in_banner + "=" * (159 - len(text_in_banner))
+    custom_line_in_banner: str = (
+        "=" * 8 + text_in_banner + "=" * (159 - len(text_in_banner))
+    )
     logger.info(
         f"""\n
     =======================================================================================================================================================================
@@ -50,8 +52,8 @@ def load_config(file_path: str) -> dict:
     abs_file_path = os.path.abspath(file_path)
     expected_directory_path = os.path.abspath(CONFIG_DIR)
     assert (
-            os.path.commonprefix([abs_file_path, expected_directory_path])
-            == expected_directory_path
+        os.path.commonprefix([abs_file_path, expected_directory_path])
+        == expected_directory_path
     ), f"Config file should be placed under `{CONFIG_DIR}` directory!"
     with open(os.path.join(CONFIG_DIR, abs_file_path)) as fp:
         return json.load(fp)

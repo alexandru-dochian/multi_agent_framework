@@ -51,6 +51,10 @@ class PositionLogger(LogHandler):
         @mlab.animate(delay=self.config.delay)
         def anim():
             try:
+                persistence.clear(
+                    self.config.experiment_dir,
+                    self.__class__.__name__,
+                )
                 while self.communicator.is_active():
                     x_new = []
                     y_new = []
@@ -121,19 +125,22 @@ class PositionLogger(LogHandler):
                 [0, 0], [y_min_limit, 0], [0, 0], color=(0, 1, 0), tube_radius=0.01
             )  # Negative Y axis in green
 
-        # Function to draw the grid on the XY plane in all quadrants
         def draw_xy_grid(grid_spacing=1.0):
             # TODO: get from environment
             x_min_limit = -2.5
             x_max_limit = 1.5
             y_min_limit = -1.0
             y_max_limit = 2.0
-            grid_size = int(round(max(
-                x_max_limit - x_min_limit,
-                y_max_limit - y_min_limit,
-            )))
+            grid_size = int(
+                round(
+                    max(
+                        x_max_limit - x_min_limit,
+                        y_max_limit - y_min_limit,
+                    )
+                )
+            )
 
-            for i in np.arange(-grid_size, grid_size + grid_spacing, grid_spacing):
+            for i in np.arange(y_min_limit, y_max_limit + grid_spacing, grid_spacing):
                 mlab.plot3d(
                     [-grid_size, grid_size],
                     [i, i],
@@ -141,13 +148,29 @@ class PositionLogger(LogHandler):
                     color=(0.7, 0.7, 0.7),
                     tube_radius=0.005,
                 )
-                mlab.plot3d(
-                    [i, i],
-                    [-grid_size, grid_size],
-                    [0, 0],
-                    color=(0.7, 0.7, 0.7),
-                    tube_radius=0.005,
-                )
+                # mlab.plot3d(
+                #     [i, i],
+                #     [-grid_size, grid_size],
+                #     [0, 0],
+                #     color=(0.7, 0.7, 0.7),
+                #     tube_radius=0.005,
+                # )
+
+            # for i in np.arange(-grid_size, grid_size + grid_spacing, grid_spacing):
+            #     mlab.plot3d(
+            #         [-grid_size, grid_size],
+            #         [i, i],
+            #         [0, 0],
+            #         color=(0.7, 0.7, 0.7),
+            #         tube_radius=0.005,
+            #     )
+            #     mlab.plot3d(
+            #         [i, i],
+            #         [-grid_size, grid_size],
+            #         [0, 0],
+            #         color=(0.7, 0.7, 0.7),
+            #         tube_radius=0.005,
+            #     )
 
         draw_axes()
         draw_xy_grid()
@@ -193,6 +216,10 @@ class FieldStateLogger(LogHandler):
         @mlab.animate(delay=self.config.delay)
         def anim():
             try:
+                persistence.clear(
+                    self.config.experiment_dir,
+                    self.__class__.__name__,
+                )
                 while self.communicator.is_active():
                     field_state: FieldState = self.communicator.fetch_agent_state(
                         self.config.agent_id
@@ -264,6 +291,4 @@ def spawn_log_handler(init_config: ProcessInitConfig):
     ), f"LogHandler [{init_config.class_name}] was not found"
     log_handler: LogHandler = log_handler_class(**init_config.params)
     log_handler.run()
-    logger.info(
-        f"Finalized {init_config.class_name} log handler {init_config.worker}!"
-    )
+    logger.info(f"Finalized {init_config.class_name} log handler {init_config.worker}!")

@@ -61,3 +61,4 @@ python3 main.py maf/config/new_config.json
 ### On-the-edge deployment of crazyflie drones
 
 ![DevelopmentLayer](docs/static-resources/DevelopmentLayer.png)
+    

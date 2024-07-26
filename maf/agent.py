@@ -46,11 +46,11 @@ class Agent(ABC):
     communicator: Communicator
 
     def __init__(
-            self,
-            config: Config,
-            state: State,
-            controller: Controller,
-            communicator: Communicator,
+        self,
+        config: Config,
+        state: State,
+        controller: Controller,
+        communicator: Communicator,
     ):
         self.config = config
         self.state = state
@@ -124,7 +124,7 @@ class VirtualDrone2D(Agent):
         logger.info(f"Finished [{self.config.agent_id}]!")
 
     def compute_new_state(
-            self, old_state: FieldState, command: VelocityCommand2D
+        self, old_state: FieldState, command: VelocityCommand2D
     ) -> FieldState:
         delay_seconds: float = self.config.delay / 1000
 
@@ -241,7 +241,7 @@ class CFDrone2D(Agent):
 
         logger.info(f"Initializing [{self.hex_address}]...")
         with SyncCrazyflie(
-                self.config.agent_id, Crazyflie(rw_cache=f"./cache/{self.hex_address}")
+            self.config.agent_id, Crazyflie(rw_cache=f"./cache/{self.hex_address}")
         ) as scf:
             scf.cf.param.add_update_callback(
                 group="deck", name="bcLighthouse4", cb=param_deck_flow_anon
@@ -322,7 +322,7 @@ class CFDrone2D(Agent):
             self.communicator.register_agent(self.config.agent_id)
             spent_time = 0
             while (
-                    spent_time < self.config.total_time
+                spent_time < self.config.total_time
             ) and self.communicator.is_active():
                 # state gets updated asynchronously in `self.log_pos_callback`
                 self.controller.set_state(self.state)
@@ -340,7 +340,7 @@ class CFDrone2D(Agent):
         logger.info(f"CFDrone2D {self.hex_address} finished!")
 
     def command_yaw_change(
-            self, target_angles=None, rate_of_change: float = 5, epsilon: float = 3
+        self, target_angles=None, rate_of_change: float = 5, epsilon: float = 3
     ) -> float:
         if target_angles is None:
             # Will keep the drone pointing on the ox axis
