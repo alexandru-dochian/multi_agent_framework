@@ -19,7 +19,7 @@ def read_text_file(file_path):
 def print_banner(experiment: str):
     text_in_banner: str = f" experiment = [{experiment}] "
     custom_line_in_banner: str = (
-            "=" * 8 + text_in_banner + "=" * (159 - len(text_in_banner))
+        "=" * 8 + text_in_banner + "=" * (159 - len(text_in_banner))
     )
     logger.info(
         f"""\n
@@ -43,27 +43,27 @@ def parse_arguments():
         description="Multi agent framework for collective intelligence research",
     )
 
-    # Adding arguments for displaying legal texts
-    parser.add_argument(
-        "show",
-        choices=["l", "n"],
-        nargs="?",
-        help="Display legal texts: 'l' for LICENSE, 'n' for NOTICE",
-    )
-
     parser.add_argument(
         "config",
         nargs="?",
         default=f"{CONFIG_DIR}/default.json",
         help="Path to any maf/config/*.json configuration file",
     )
+
+    parser.add_argument(
+        "-l", "--license", action="store_true", help="Show LICENSE information"
+    )
+    parser.add_argument(
+        "-n", "--notice", action="store_true", help="Show NOTICE information"
+    )
+
     arguments = parser.parse_args()
 
-    if arguments.show == "l":
+    if arguments.license:
         copying_text = read_text_file("LICENSE")
         print(copying_text)
         exit(0)
-    elif arguments.show == "n":
+    elif arguments.notice:
         notice_text = read_text_file("NOTICE")
         print(notice_text)
         exit(0)
@@ -78,8 +78,8 @@ def load_config(file_path: str) -> dict:
     abs_file_path = os.path.abspath(file_path)
     expected_directory_path = os.path.abspath(CONFIG_DIR)
     assert (
-            os.path.commonprefix([abs_file_path, expected_directory_path])
-            == expected_directory_path
+        os.path.commonprefix([abs_file_path, expected_directory_path])
+        == expected_directory_path
     ), f"Config file should be placed under `{CONFIG_DIR}` directory!"
     with open(os.path.join(CONFIG_DIR, abs_file_path)) as fp:
         return json.load(fp)

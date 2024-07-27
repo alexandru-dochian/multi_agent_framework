@@ -10,7 +10,8 @@ def install_ubuntu():
     print("Installing on Ubuntu..")
     run_cmd("sudo add-apt-repository ppa:deadsnakes/ppa -y")
     run_cmd(
-        "sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"")
+        'sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"'
+    )
     run_cmd("sudo apt-get update")
 
     print("Install python3.11")
@@ -21,8 +22,12 @@ def install_ubuntu():
     run_cmd("pip install poetry-plugin-export")
 
     print("Install Docker")
-    run_cmd("sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y")
-    run_cmd("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -")
+    run_cmd(
+        "sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y"
+    )
+    run_cmd(
+        "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -"
+    )
     run_cmd("sudo apt-get install docker-ce -y")
     run_cmd(f"sudo usermod -aG docker {os.getlogin()}")
 

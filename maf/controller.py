@@ -1,3 +1,7 @@
+import os
+
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
+
 import datetime
 from abc import ABC, abstractmethod
 
@@ -53,7 +57,7 @@ class GoToPointController(Controller):
     def __init__(self, config: dict):
         super().__init__(GoToPointControllerConfig(**config), PositionState())
         assert (
-                self.config.target_position is not None
+            self.config.target_position is not None
         ), f"Target position [target_position] must be specified for {self.__class__.__name__}"
 
     def set_state(self, state: PositionState):
@@ -226,7 +230,6 @@ class HillClimbingController(Controller):
         field: np.array = self.state.field.data
         grid: np.array = field_modulation.pooling_to_3x3(
             field, self.config.pooling_function
-
         )
         if all_elements_close(grid):
             return SimpleAction2D.STOP
@@ -260,7 +263,7 @@ class HelloWorldController(Controller):
             None,
         )
 
-    def predict(self) -> Action:
+    def predict(self) -> str:
         return "Hello World"
 
     def set_state(self, state: State):

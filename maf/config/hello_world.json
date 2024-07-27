@@ -1,0 +1,53 @@
+{
+  "communicators": [
+    {
+      "class_name": "RedisCommunicator"
+    }
+  ],
+  "environments": [
+    {
+      "worker": "Process",
+      "class_name": "HelloWorldEnvironment",
+      "params": {
+        "config": {
+          "delay": 100
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    }
+  ],
+  "agents": [
+    {
+      "worker": "Process",
+      "class_name": "HelloWorldAgent",
+      "params": {
+        "config": {
+          "agent_id": "A",
+          "delay": 100
+        },
+        "controller": {
+          "class_name": "HelloWorldController"
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    }
+  ],
+  "log_handlers": [
+    {
+      "worker": "Process",
+      "class_name": "HelloWorldLogger",
+      "params": {
+        "config": {
+          "experiment_dir": "hello_world"
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    }
+  ]
+}

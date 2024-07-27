@@ -93,16 +93,29 @@ class FieldModulationEnvironment(Environment):
 """
 
 
-class HelloWorldEnvironmentConfig(Environment):
+class HelloWorldEnvironmentConfig(Config):
     ...
 
 
 class HelloWorldEnvironment(Environment):
-    ...
+    config: HelloWorldEnvironmentConfig
+
+    state: State
+    communicator: Communicator
+
+    def __init__(self, config: dict, communicator: dict):
+        super().__init__(
+            HelloWorldEnvironmentConfig(**config),
+            None,
+            get_communicator(communicator),
+        )
+
+    def run(self):
+        logger.info("Hello World")
 
 
 def spawn_environment(
-        init_config: ProcessInitConfig,
+    init_config: ProcessInitConfig,
 ):
     """
     This method is the entrypoint for the environment process

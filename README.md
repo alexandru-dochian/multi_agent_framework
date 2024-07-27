@@ -7,7 +7,9 @@
     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Ubuntu-logo-no-wordmark-solid-o-2022.svg/640px-Ubuntu-logo-no-wordmark-solid-o-2022.svg.png" alt="Ubuntu" width="auto" height="50" />  &nbsp;&nbsp;&nbsp;&nbsp;
   </a>
   &nbsp;&nbsp;&nbsp;
+  <a href="https://support.apple.com/macos">
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/MacOS_logo_%282017%29.svg/640px-MacOS_logo_%282017%29.svg.png" alt="MacOS" width="auto" height="50" />
+  </a>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <a href="https://www.microsoft.com/software-download">
     <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Windows_10_Logo.svg" alt="Windows 10" width="auto" height="50" />
