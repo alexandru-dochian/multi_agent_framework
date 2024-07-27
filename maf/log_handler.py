@@ -24,6 +24,13 @@ class LogHandler(ABC):
         ...
 
 
+"""
+###############################################################################
+######## PositionLogger #######################################################
+###############################################################################
+"""
+
+
 class PositionLoggerConfig(Config):
     experiment_dir: str
     delay: int = 500  # ms
@@ -187,6 +194,13 @@ class PositionLogger(LogHandler):
         )
 
 
+"""
+###############################################################################
+######## FieldStateLogger #####################################################
+###############################################################################
+"""
+
+
 class FieldStateLoggerConfig(Config):
     agent_id: str
     experiment_dir: str
@@ -278,6 +292,31 @@ class FieldStateLogger(LogHandler):
             self.__class__.__name__,
             {"agent": agent, "state": state},
         )
+
+
+"""
+###############################################################################
+######## HelloWorldLogger #####################################################
+###############################################################################
+"""
+
+
+class HelloWorldLoggerConfig(Config):
+    experiment_dir: str
+    delay: int = 500  # ms
+
+
+class HelloWorldLogger(LogHandler):
+    config: HelloWorldLoggerConfig
+    communicator: Communicator
+
+    def __init__(self, config: dict, communicator: dict) -> None:
+        super().__init__(
+            HelloWorldLoggerConfig(**config), get_communicator(communicator)
+        )
+
+    def run(self):
+        logger.info("Hello World")
 
 
 def spawn_log_handler(init_config: ProcessInitConfig):

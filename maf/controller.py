@@ -34,6 +34,13 @@ class Controller(ABC):
         ...
 
 
+"""
+###############################################################################
+######## GoToPointController ##################################################
+###############################################################################
+"""
+
+
 class GoToPointControllerConfig(Config):
     target_position: Position | None = None
     box_limit: float = 0.5  # meters
@@ -46,7 +53,7 @@ class GoToPointController(Controller):
     def __init__(self, config: dict):
         super().__init__(GoToPointControllerConfig(**config), PositionState())
         assert (
-            self.config.target_position is not None
+                self.config.target_position is not None
         ), f"Target position [target_position] must be specified for {self.__class__.__name__}"
 
     def set_state(self, state: PositionState):
@@ -80,6 +87,13 @@ class GoToPointController(Controller):
                 return SimpleAction2D.LEFT
             elif delta_y < 0:
                 return SimpleAction2D.RIGHT
+
+
+"""
+###############################################################################
+######## KeyboardController ###################################################
+###############################################################################
+"""
 
 
 class KeyboardControllerConfig(Config):
@@ -159,6 +173,13 @@ class KeyboardController(Controller):
         pass
 
 
+"""
+###############################################################################
+######## HillClimbingController ###############################################
+###############################################################################
+"""
+
+
 class HillClimbingControllerConfig(Config):
     agent_id: str = "Unknown"
     pooling_function: str = "sum"
@@ -214,6 +235,36 @@ class HillClimbingController(Controller):
 
     def set_state(self, state: State):
         self.state = state
+
+
+"""
+###############################################################################
+######## HelloWorldController #################################################
+###############################################################################
+"""
+
+
+class HelloWorldControllerConfig(Config):
+    ...
+
+
+class HelloWorldController(Controller):
+    config: HelloWorldControllerConfig
+    state: State
+
+    def __init__(self, config: dict | None = None):
+        super().__init__(
+            HelloWorldControllerConfig(**config)
+            if config
+            else HelloWorldControllerConfig(),
+            None,
+        )
+
+    def predict(self) -> Action:
+        return "Hello World"
+
+    def set_state(self, state: State):
+        pass
 
 
 def get_controller(init_config: dict) -> Controller:

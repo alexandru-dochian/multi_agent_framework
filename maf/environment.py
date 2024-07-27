@@ -34,6 +34,13 @@ class Environment(ABC):
         ...
 
 
+"""
+###############################################################################
+######## FieldModulationEnvironment ###########################################
+###############################################################################
+"""
+
+
 class FieldModulationEnvironmentConfig(Config):
     delay: int = 100  # ms
     space_limit: SpaceLimit
@@ -79,8 +86,23 @@ class FieldModulationEnvironment(Environment):
         )
 
 
+"""
+###############################################################################
+######## HelloWorldEnvironment ################################################
+###############################################################################
+"""
+
+
+class HelloWorldEnvironmentConfig(Environment):
+    ...
+
+
+class HelloWorldEnvironment(Environment):
+    ...
+
+
 def spawn_environment(
-    init_config: ProcessInitConfig,
+        init_config: ProcessInitConfig,
 ):
     """
     This method is the entrypoint for the environment process

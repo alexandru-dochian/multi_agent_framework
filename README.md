@@ -1,16 +1,27 @@
 # Multi Agent Framework
 
+## Supported operating systems
+
+<p align="center">
+  <img src="https://assets.ubuntu.com/v1/a7e3c509-Canonical%20Ubuntu.svg" alt="Ubuntu" width="auto" height="50" />  &nbsp;&nbsp;&nbsp;&nbsp;
+  &nbsp;&nbsp;&nbsp;
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/640px-Apple_logo_black.svg.png" alt="MacOS" width="auto" height="50" />
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Windows_10_Logo.svg" alt="Windows 10" width="auto" height="50" />
+
+</p>
+
 ## Recommended tools:
 
-<div style="display: flex; justify-content: space-around; align-items: center; padding: 20px;">
-  <a href="https://www.jetbrains.com/pycharm/download/" style="text-decoration:none;">
-    <img src="https://www.jetbrains.com/favicon.ico" alt="PyCharm" width="50" height="50"/>
+<p align="center">
+  <a href="https://www.jetbrains.com/pycharm/download/">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/JetBrains_PyCharm_Product_Icon.svg/640px-JetBrains_PyCharm_Product_Icon.svg.png" alt="PyCharm" width="auto" height="50" />
   </a>
-
-  <a href="https://code.visualstudio.com/download" style="text-decoration:none;">
-    <img src="https://code.visualstudio.com/assets/favicon.ico" alt="Visual Studio Code" width="50" height="50"/>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://code.visualstudio.com/download">
+    <img src="https://code.visualstudio.com/assets/favicon.ico" alt="Visual Studio Code" width="50" height="50" />
   </a>
-</div>
+</p>
 
 ## Required dependencies
 
@@ -28,22 +39,11 @@
   </a>
 </p>
 
-### Ubuntu
-
-```bash
-./setup.sh
-```
-
-#### Windows 10
-
-In PowerShell
+## Installation
 
 ```shell
+python install.py
 ```
-
-#### MacOS
-
-TODO
 
 ### Run experiment
 
@@ -77,5 +77,5 @@ python3 main.py maf/config/new_config.json
 
 ## LICENCE
 
-This project is licensed under [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.txt)
-
+This project is released under [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.txt)
+and it applies specifically to the [**maf**](maf) package.
