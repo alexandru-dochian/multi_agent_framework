@@ -1,19 +1,32 @@
-## Multi Agent Framework
+# Multi Agent Framework
 
-## Installation:
+## Recommended tools:
 
-### Recommended tools:
+<div style="display: flex; justify-content: space-around; align-items: center; padding: 20px;">
+  <a href="https://www.jetbrains.com/pycharm/download/" style="text-decoration:none;">
+    <img src="https://www.jetbrains.com/favicon.ico" alt="PyCharm" width="50" height="50"/>
+  </a>
 
-- [Visual Studio Code](https://code.visualstudio.com/download)
-- [PyCharm](https://www.jetbrains.com/pycharm/download/)
+  <a href="https://code.visualstudio.com/download" style="text-decoration:none;">
+    <img src="https://code.visualstudio.com/assets/favicon.ico" alt="Visual Studio Code" width="50" height="50"/>
+  </a>
+</div>
 
-### Setup
+## Required dependencies
 
-Install all the necessary operating system dependencies and set up python virtual environment with `poetry`.
+<div style="display: flex; justify-content: space-around; align-items: center; padding: 20px;">
+  <a href="https://www.python.org/downloads/release/python-3110/" style="text-decoration:none;">
+    <img src="https://www.python.org/static/favicon.ico" alt="Python 3.11" width="50" height="50"/>
+  </a>
 
-- [Python 3.11](https://www.python.org/downloads/release/python-3110/)
-- [Docker](https://docs.docker.com/get-docker/)
-- [Poetry](https://python-poetry.org/docs/#installation)
+  <a href="https://docs.docker.com/get-docker/" style="text-decoration:none;">
+    <img src="https://www.docker.com/favicon.ico" alt="Docker" width="50" height="50"/>
+  </a>
+
+  <a href="https://python-poetry.org/docs/#installation" style="text-decoration:none;">
+    <img src="https://python-poetry.org/images/favicon-origami-32.png" alt="Poetry" width="50" height="50"/>
+  </a>
+</div>
 
 ### Ubuntu
 
@@ -61,4 +74,8 @@ python3 main.py maf/config/new_config.json
 ### On-the-edge deployment of crazyflie drones
 
 ![DevelopmentLayer](docs/static-resources/DevelopmentLayer.png)
-    
+
+## LICENCE
+
+This project is licensed under [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.txt)
+
