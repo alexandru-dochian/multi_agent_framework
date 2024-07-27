@@ -14,19 +14,19 @@
 
 ## Required dependencies
 
-<div style="display: flex; justify-content: space-around; align-items: center; padding: 20px;">
-  <a href="https://www.python.org/downloads/release/python-3110/" style="text-decoration:none;">
-    <img src="https://www.python.org/static/favicon.ico" alt="Python 3.11" width="50" height="50"/>
+<p align="center">
+  <a href="https://www.python.org/downloads/release/python-3110/">
+    <img src="https://www.python.org/static/favicon.ico" alt="Python 3.11" width="50" height="50" />
   </a>
-
-  <a href="https://docs.docker.com/get-docker/" style="text-decoration:none;">
-    <img src="https://www.docker.com/favicon.ico" alt="Docker" width="50" height="50"/>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://docs.docker.com/get-docker/">
+    <img src="https://www.docker.com/favicon.ico" alt="Docker" width="50" height="50" />
   </a>
-
-  <a href="https://python-poetry.org/docs/#installation" style="text-decoration:none;">
-    <img src="https://python-poetry.org/images/favicon-origami-32.png" alt="Poetry" width="50" height="50"/>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://python-poetry.org/docs/#installation">
+    <img src="https://python-poetry.org/images/favicon-origami-32.png" alt="Poetry" width="50" height="50" />
   </a>
-</div>
+</p>
 
 ### Ubuntu
 
