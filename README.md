@@ -3,23 +3,14 @@
 ## Supported operating systems
 
 <p align="center">
-  <img src="https://assets.ubuntu.com/v1/a7e3c509-Canonical%20Ubuntu.svg" alt="Ubuntu" width="auto" height="50" />  &nbsp;&nbsp;&nbsp;&nbsp;
-  &nbsp;&nbsp;&nbsp;
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/640px-Apple_logo_black.svg.png" alt="MacOS" width="auto" height="50" />
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Windows_10_Logo.svg" alt="Windows 10" width="auto" height="50" />
-
-</p>
-
-## Recommended tools:
-
-<p align="center">
-  <a href="https://www.jetbrains.com/pycharm/download/">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/JetBrains_PyCharm_Product_Icon.svg/640px-JetBrains_PyCharm_Product_Icon.svg.png" alt="PyCharm" width="auto" height="50" />
+  <a href="https://ubuntu.com/desktop">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Ubuntu-logo-no-wordmark-solid-o-2022.svg/640px-Ubuntu-logo-no-wordmark-solid-o-2022.svg.png" alt="Ubuntu" width="auto" height="50" />  &nbsp;&nbsp;&nbsp;&nbsp;
   </a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://code.visualstudio.com/download">
-    <img src="https://code.visualstudio.com/assets/favicon.ico" alt="Visual Studio Code" width="50" height="50" />
+  &nbsp;&nbsp;&nbsp;
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/MacOS_logo_%282017%29.svg/640px-MacOS_logo_%282017%29.svg.png" alt="MacOS" width="auto" height="50" />
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://www.microsoft.com/software-download">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Windows_10_Logo.svg" alt="Windows 10" width="auto" height="50" />
   </a>
 </p>
 
@@ -36,6 +27,18 @@
   &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="https://python-poetry.org/docs/#installation">
     <img src="https://python-poetry.org/images/favicon-origami-32.png" alt="Poetry" width="50" height="50" />
+  </a>
+</p>
+
+## Recommended tools:
+
+<p align="center">
+  <a href="https://www.jetbrains.com/pycharm/download/">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/JetBrains_PyCharm_Product_Icon.svg/640px-JetBrains_PyCharm_Product_Icon.svg.png" alt="PyCharm" width="auto" height="50" />
+  </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://code.visualstudio.com/download">
+    <img src="https://code.visualstudio.com/assets/favicon.ico" alt="Visual Studio Code" width="50" height="50" />
   </a>
 </p>
 
