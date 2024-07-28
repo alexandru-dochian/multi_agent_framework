@@ -20,8 +20,7 @@ class LogHandler(ABC):
         self.communicator = communicator
 
     @abstractmethod
-    def run(self):
-        ...
+    def run(self): ...
 
 
 """

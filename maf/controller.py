@@ -30,12 +30,10 @@ class Controller(ABC):
         self.state = state
 
     @abstractmethod
-    def predict(self) -> Action:
-        ...
+    def predict(self) -> Action: ...
 
     @abstractmethod
-    def set_state(self, state: State):
-        ...
+    def set_state(self, state: State): ...
 
 
 """
@@ -109,9 +107,11 @@ class KeyboardController(Controller):
 
     def __init__(self, config: dict | None = None):
         super().__init__(
-            KeyboardControllerConfig(**config)
-            if config
-            else KeyboardControllerConfig(),
+            (
+                KeyboardControllerConfig(**config)
+                if config
+                else KeyboardControllerConfig()
+            ),
             None,
         )
         self.last_action: SimpleAction2D = SimpleAction2D.STOP
@@ -213,9 +213,11 @@ class HillClimbingController(Controller):
 
     def __init__(self, config: dict | None = None):
         super().__init__(
-            HillClimbingControllerConfig(**config)
-            if config
-            else HillClimbingControllerConfig(),
+            (
+                HillClimbingControllerConfig(**config)
+                if config
+                else HillClimbingControllerConfig()
+            ),
             FieldState(),
         )
 
@@ -246,8 +248,7 @@ class HillClimbingController(Controller):
 """
 
 
-class HelloWorldControllerConfig(Config):
-    ...
+class HelloWorldControllerConfig(Config): ...
 
 
 class HelloWorldController(Controller):
@@ -256,9 +257,11 @@ class HelloWorldController(Controller):
 
     def __init__(self, config: dict | None = None):
         super().__init__(
-            HelloWorldControllerConfig(**config)
-            if config
-            else HelloWorldControllerConfig(),
+            (
+                HelloWorldControllerConfig(**config)
+                if config
+                else HelloWorldControllerConfig()
+            ),
             None,
         )
 

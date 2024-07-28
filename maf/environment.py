@@ -30,8 +30,7 @@ class Environment(ABC):
         self.communicator = communicator
 
     @abstractmethod
-    def run(self):
-        ...
+    def run(self): ...
 
 
 """
@@ -93,8 +92,7 @@ class FieldModulationEnvironment(Environment):
 """
 
 
-class HelloWorldEnvironmentConfig(Config):
-    ...
+class HelloWorldEnvironmentConfig(Config): ...
 
 
 class HelloWorldEnvironment(Environment):
