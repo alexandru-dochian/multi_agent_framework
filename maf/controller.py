@@ -47,7 +47,6 @@ class Controller(ABC):
 
 class GoToPointControllerConfig(Config):
     target_position: Position | None = None
-    box_limit: float = 0.5  # meters
 
 
 class GoToPointController(Controller):
@@ -105,8 +104,8 @@ class KeyboardControllerConfig(Config):
 
 
 class KeyboardController(Controller):
-    WIDTH = 800
-    HEIGHT = 600
+    WIDTH = 480
+    HEIGHT = 480
 
     def __init__(self, config: dict | None = None):
         super().__init__(

@@ -41,7 +41,7 @@
           ],
           "rotation_center": {
             "x": -0.5,
-            "y": 0.25
+            "y": 0.5
           },
           "theta": 2.5
         },
@@ -52,6 +52,134 @@
     }
   ],
   "agents": [
+    {
+      "worker": "Thread",
+      "class_name": "VirtualDrone2D",
+      "params": {
+        "config": {
+          "delay": 100,
+          "agent_id": "1",
+          "default_height": 0.55,
+          "max_vel": 0.35,
+          "initial_position": {
+            "x": -1,
+            "y": 1,
+            "z": 0
+          },
+          "total_time": 600
+        },
+        "controller": {
+          "class_name": "GoToPointController",
+          "params": {
+            "config": {
+              "target_position": {
+                "x": -2.5,
+                "y": 2.0
+              }
+            }
+          }
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    },
+    {
+      "worker": "Thread",
+      "class_name": "VirtualDrone2D",
+      "params": {
+        "config": {
+          "delay": 100,
+          "agent_id": "2",
+          "default_height": 0.55,
+          "max_vel": 0.35,
+          "initial_position": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          },
+          "total_time": 600
+        },
+        "controller": {
+          "class_name": "GoToPointController",
+          "params": {
+            "config": {
+              "target_position": {
+                "x": 1.5,
+                "y": 2.0
+              }
+            }
+          }
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    },
+    {
+      "worker": "Thread",
+      "class_name": "VirtualDrone2D",
+      "params": {
+        "config": {
+          "delay": 100,
+          "agent_id": "3",
+          "default_height": 0.55,
+          "max_vel": 0.35,
+          "initial_position": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "total_time": 600
+        },
+        "controller": {
+          "class_name": "GoToPointController",
+          "params": {
+            "config": {
+              "target_position": {
+                "x": 1.5,
+                "y": -1.0
+              }
+            }
+          }
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    },
+    {
+      "worker": "Thread",
+      "class_name": "VirtualDrone2D",
+      "params": {
+        "config": {
+          "delay": 100,
+          "agent_id": "4",
+          "default_height": 0.55,
+          "max_vel": 0.35,
+          "initial_position": {
+            "x": -1,
+            "y": 0,
+            "z": 0
+          },
+          "total_time": 600
+        },
+        "controller": {
+          "class_name": "GoToPointController",
+          "params": {
+            "config": {
+              "target_position": {
+                "x": -2.5,
+                "y": -1.0
+              }
+            }
+          }
+        },
+        "communicator": {
+          "class_name": "RedisCommunicator"
+        }
+      }
+    },
     {
       "worker": "Thread",
       "class_name": "VirtualDrone2D",
@@ -165,7 +293,12 @@
           }
         },
         "controller": {
-          "class_name": "HillClimbingController"
+          "class_name": "KeyboardController",
+          "params": {
+            "config": {
+              "agent_id": "X"
+            }
+          }
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -179,7 +312,7 @@
       "class_name": "PositionLogger",
       "params": {
         "config": {
-          "experiment_dir": "circle_spin"
+          "experiment_dir": "default"
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -191,9 +324,8 @@
       "class_name": "FieldStateLogger",
       "params": {
         "config": {
-          "experiment_dir": "circle_spin",
+          "experiment_dir": "default",
           "agent_id": "X",
-          "gui_enabled": "true",
           "delay": 100
         },
         "communicator": {

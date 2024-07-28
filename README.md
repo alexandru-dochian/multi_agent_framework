@@ -50,22 +50,22 @@
 python install.py
 ```
 
-### Run experiment
+## Play
 
-#### Start Redis communicator
+### Start Redis communicator
 
 ```shell
 docker compose up
 
 ```
 
-#### Start experiment
+### Start experiment
 
 Config files in json format are used to start an experiment. They are stored under `maf/config/` directory.
 
 ```bash
 # No args => it will automatically use `config/maf/default.json`
-python3 main.py 
+python3 main.py
 ```
 
 New config `new_config.json` should be added in `maf/config/` directory.
@@ -76,11 +76,38 @@ Thus `maf/config/new_config.json` can be used as follows:
 python3 main.py maf/config/new_config.json
 ```
 
+## Architecture
+
+![Architecture](docs/static-resources/V9-Architecture.drawio.svg)
+
+
+## Experiments
+
+### Hello World experiment (`hello_world.json`)
+
+![Hello World](docs/static-resources/V9-Architecture-hello_world.drawio.svg)
+
+### Default experiment (`default.json`)
+
+![Default](docs/static-resources/V9-Architecture-default.drawio.svg)
+
+## Integrations
+
+### Crazyflie
+
+
+![Crazyflie integration](docs/static-resources/V9-Architecture-crazyflie.drawio.svg)
+
+
+
+## Future work
+
 ### On-the-edge deployment of crazyflie drones
 
 ![DevelopmentLayer](docs/static-resources/DevelopmentLayer.png)
 
-## LICENCE
+
+## LICENSE
 
 This project is released under [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.txt)
 and it applies specifically to the [**maf**](maf) package.

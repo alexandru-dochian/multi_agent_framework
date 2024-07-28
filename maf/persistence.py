@@ -33,7 +33,8 @@ def clear(experiment_dir: str, log_handler: str):
             DATA_DIR,
             experiment_dir,
             log_handler,
-        )
+        ),
+        ignore_errors=True,
     )
 
 

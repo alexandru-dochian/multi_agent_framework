@@ -96,7 +96,7 @@ class PositionLogger(LogHandler):
             self.__class__.__name__,
             bgcolor=(1, 1, 1),
             fgcolor=(0, 0, 0),
-            size=(800, 600),
+            size=(960, 540),
         )
 
         mlab.clf()
@@ -147,7 +147,7 @@ class PositionLogger(LogHandler):
                 )
             )
 
-            for i in np.arange(y_min_limit, y_max_limit + grid_spacing, grid_spacing):
+            for i in np.arange(-grid_size, grid_size + grid_spacing, grid_spacing):
                 mlab.plot3d(
                     [-grid_size, grid_size],
                     [i, i],
@@ -155,29 +155,13 @@ class PositionLogger(LogHandler):
                     color=(0.7, 0.7, 0.7),
                     tube_radius=0.005,
                 )
-                # mlab.plot3d(
-                #     [i, i],
-                #     [-grid_size, grid_size],
-                #     [0, 0],
-                #     color=(0.7, 0.7, 0.7),
-                #     tube_radius=0.005,
-                # )
-
-            # for i in np.arange(-grid_size, grid_size + grid_spacing, grid_spacing):
-            #     mlab.plot3d(
-            #         [-grid_size, grid_size],
-            #         [i, i],
-            #         [0, 0],
-            #         color=(0.7, 0.7, 0.7),
-            #         tube_radius=0.005,
-            #     )
-            #     mlab.plot3d(
-            #         [i, i],
-            #         [-grid_size, grid_size],
-            #         [0, 0],
-            #         color=(0.7, 0.7, 0.7),
-            #         tube_radius=0.005,
-            #     )
+                mlab.plot3d(
+                    [i, i],
+                    [-grid_size, grid_size],
+                    [0, 0],
+                    color=(0.7, 0.7, 0.7),
+                    tube_radius=0.005,
+                )
 
         draw_axes()
         draw_xy_grid()
@@ -256,7 +240,7 @@ class FieldStateLogger(LogHandler):
             f"FieldState for [{self.config.agent_id}]",
             bgcolor=(1, 1, 1),
             fgcolor=(0, 0, 0),
-            size=(800, 600),
+            size=(480, 480),
         )
         mlab.clf()
         mlab.view(0, 180, None, (0, 0, 0))

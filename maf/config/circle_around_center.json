@@ -193,7 +193,6 @@
         "config": {
           "experiment_dir": "circle_around_center",
           "agent_id": "X",
-          "gui_enabled": "true",
           "delay": 100
         },
         "communicator": {

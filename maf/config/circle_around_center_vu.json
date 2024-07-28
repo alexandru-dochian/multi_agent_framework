@@ -203,7 +203,6 @@
         "config": {
           "experiment_dir": "circle_around_center_vu",
           "agent_id": "radio://0/100/2M/E7E7E7E70A",
-          "gui_enabled": "true",
           "delay": 100
         },
         "communicator": {
