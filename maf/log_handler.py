@@ -1,4 +1,5 @@
 import logging
+import time
 
 import numpy as np
 
@@ -285,8 +286,8 @@ class FieldStateLogger(LogHandler):
 
 
 class HelloWorldLoggerConfig(Config):
-    experiment_dir: str
-    delay: int = 500  # ms
+    experiment_dir: str = "hello_world"
+    delay: int = 1000  # ms
 
 
 class HelloWorldLogger(LogHandler):
@@ -299,18 +300,27 @@ class HelloWorldLogger(LogHandler):
         )
 
     def run(self):
-        logger.info("Hello World")
+        while self.communicator.is_active():
+            info: str = self.communicator.fetch_environment_state()
+            logger.info(info)
+            persistence.store(
+                self.config.experiment_dir,
+                self.__class__.__name__,
+                {"info": info},
+            )
+            delay_seconds = self.config.delay / 1000
+            time.sleep(delay_seconds)
 
 
 def spawn_log_handler(init_config: ProcessInitConfig):
     """
     This method is the entrypoint for the logger process
     """
-    logger.info(f"Spawn {init_config.class_name} log handler {init_config.worker}!")
+    logger.debug(f"Spawn {init_config.class_name} log handler {init_config.worker}!")
     log_handler_class: type[LogHandler] = globals()[init_config.class_name]
     assert issubclass(
         log_handler_class, LogHandler
     ), f"LogHandler [{init_config.class_name}] was not found"
     log_handler: LogHandler = log_handler_class(**init_config.params)
     log_handler.run()
-    logger.info(f"Finalized {init_config.class_name} log handler {init_config.worker}!")
+    logger.debug(f"Finished {init_config.class_name} log handler {init_config.worker}!")

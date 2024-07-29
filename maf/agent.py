@@ -15,7 +15,7 @@ from cflib.positioning.motion_commander import MotionCommander
 
 from maf import field_modulation, logger_config
 from maf.communicator import Communicator, get_communicator
-from maf.controller import get_controller, Controller
+from maf.controller import get_controller, Controller, HelloWorldController
 from maf.core import (
     Config,
     FieldState,
@@ -25,7 +25,6 @@ from maf.core import (
     SimpleAction2D,
     ProcessInitConfig,
     State,
-    Command,
     PositionState,
     Field,
     DroneAngle,
@@ -412,40 +411,50 @@ class CFDrone2D(Agent):
 """
 
 
-class HelloWorldAgentConfig(Config): ...
+class HelloWorldAgentConfig(Config):
+    agent_id: str = "HelloWorldAgent"
+    delay: int = 1000  # ms
 
 
 class HelloWorldAgent(Agent):
-    config: VirtualDrone2DConfig
-    state: State
-    controller: Controller
+    config: HelloWorldAgentConfig
+    state: int
+    controller: HelloWorldController
     communicator: Communicator
 
     def __init__(self, config: dict, controller: dict, communicator: dict):
-        config: VirtualDrone2DConfig = VirtualDrone2DConfig(**config)
-        state: FieldState = FieldState(
-            position=config.initial_position,
-            field=Field(data=np.zeros(FIELD_SIZE)),
-        )
+        config: HelloWorldAgentConfig = HelloWorldAgentConfig(**config)
         super().__init__(
-            config,
-            state,
-            get_controller(controller),
-            get_communicator(communicator),
+            config=config,
+            state=0,
+            controller=get_controller(controller),
+            communicator=get_communicator(communicator),
         )
 
     def run(self):
-        logger.info(self.controller.predict())
+        # register on communicator
+        self.communicator.register_agent(self.config.agent_id)
+
+        while self.communicator.is_active():
+            info: str = self.controller.predict()
+            updated_info: str = (
+                f"{info} | [{self.__class__.__name__} says hello {self.state}]"
+            )
+            self.communicator.broadcast_agent_state(self.config.agent_id, updated_info)
+            delay_seconds = self.config.delay / 1000
+            time.sleep(delay_seconds)
+            self.state += 1
 
 
 def spawn_agent(init_config: ProcessInitConfig):
     """
     This method is the entrypoint for the agent process
     """
-    logger.info(f"Spawn {init_config.class_name} agent {init_config.worker}!")
+    logger.debug(f"Spawn {init_config.class_name} agent {init_config.worker}!")
     agent_class: type[Agent] = globals()[init_config.class_name]
     assert issubclass(
         agent_class, Agent
     ), f"Communicator [{init_config.class_name}] was not found"
     agent: Agent = agent_class(**init_config.params)
     agent.run()
+    logger.debug(f"Finished {init_config.class_name} agent {init_config.worker}!")

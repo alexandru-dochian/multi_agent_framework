@@ -253,20 +253,22 @@ class HelloWorldControllerConfig(Config): ...
 
 class HelloWorldController(Controller):
     config: HelloWorldControllerConfig
-    state: State
+    state: int
 
     def __init__(self, config: dict | None = None):
         super().__init__(
-            (
+            config=(
                 HelloWorldControllerConfig(**config)
                 if config
                 else HelloWorldControllerConfig()
             ),
-            None,
+            state=0,
         )
 
     def predict(self) -> str:
-        return "Hello World"
+        info: str = f"[{self.__class__.__name__} says hello {self.state}]"
+        self.state += 1
+        return info
 
     def set_state(self, state: State):
         pass

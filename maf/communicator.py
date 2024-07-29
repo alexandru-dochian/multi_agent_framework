@@ -36,7 +36,7 @@ class RedisCommunicator(Communicator):
         self.send(self.STOP_EVENT, False)
 
     def stop(self, signal, *kwargs):
-        logger.info(
+        logger.debug(
             f"Signal [{signal}] received on [{os.getpid()}] of parent [{os.getppid()}]. Stopping communication!"
         )
         self.send(self.STOP_EVENT, True)

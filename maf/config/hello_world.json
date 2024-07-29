@@ -10,7 +10,7 @@
       "class_name": "HelloWorldEnvironment",
       "params": {
         "config": {
-          "delay": 100
+          "delay": 1000
         },
         "communicator": {
           "class_name": "RedisCommunicator"
@@ -25,7 +25,7 @@
       "params": {
         "config": {
           "agent_id": "A",
-          "delay": 100
+          "delay": 1000
         },
         "controller": {
           "class_name": "HelloWorldController"

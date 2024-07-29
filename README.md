@@ -85,7 +85,7 @@ python3 main.py maf/config/new_config.json
 
 ### Hello World experiment (`hello_world.json`)
 
-![Hello World](docs/static-resources/V9-Architecture-hello_world.drawio.svg)
+![Hello World](docs/static-resources/V10-Architecture-hello_world.drawio.svg)
 
 ### Default experiment (`default.json`)
 
@@ -104,7 +104,7 @@ python3 main.py maf/config/new_config.json
 
 ### On-the-edge deployment of crazyflie drones
 
-![DevelopmentLayer](docs/static-resources/DevelopmentLayer.png)
+![DevelopmentLayer](docs/static-resources/V10-OnTheEdge.drawio.svg)
 
 
 ## LICENSE

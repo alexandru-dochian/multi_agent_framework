@@ -92,24 +92,35 @@ class FieldModulationEnvironment(Environment):
 """
 
 
-class HelloWorldEnvironmentConfig(Config): ...
+class HelloWorldEnvironmentConfig(Config):
+    delay: int = 1000  # ms
 
 
 class HelloWorldEnvironment(Environment):
     config: HelloWorldEnvironmentConfig
 
-    state: State
+    state: int
     communicator: Communicator
 
     def __init__(self, config: dict, communicator: dict):
         super().__init__(
-            HelloWorldEnvironmentConfig(**config),
-            None,
-            get_communicator(communicator),
+            config=HelloWorldEnvironmentConfig(**config),
+            state=0,
+            communicator=get_communicator(communicator),
         )
 
     def run(self):
-        logger.info("Hello World")
+        while self.communicator.is_active():
+            updated_info: str = ""
+            for agent in self.communicator.fetch_registered_agents():
+                updated_info += self.communicator.fetch_agent_state(agent)
+
+            updated_info = f"[{updated_info}] | [{self.__class__.__name__} says hello {self.state}]"
+            self.communicator.broadcast_environment_state(updated_info)
+
+            delay_seconds = self.config.delay / 1000
+            time.sleep(delay_seconds)
+            self.state += 1
 
 
 def spawn_environment(
@@ -118,11 +129,11 @@ def spawn_environment(
     """
     This method is the entrypoint for the environment process
     """
-    logger.info(f"Spawn {init_config.class_name} environment {init_config.worker}!")
+    logger.debug(f"Spawn {init_config.class_name} environment {init_config.worker}!")
     environment_class: type[Environment] = globals()[init_config.class_name]
     assert issubclass(
         environment_class, Environment
     ), f"Environment [{init_config.class_name}] was not found"
     environment: Environment = environment_class(**init_config.params)
     environment.run()
-    logger.info(f"Finished {init_config.class_name} environment!")
+    logger.debug(f"Finished {init_config.class_name} environment!")
