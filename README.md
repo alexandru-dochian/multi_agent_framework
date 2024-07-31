@@ -95,6 +95,8 @@ python3 main.py maf/config/new_config.json
 
 ### Crazyflie
 
+[Bitcraze documentation](https://www.bitcraze.io/documentation/repository/)
+
 
 ![Crazyflie integration](docs/static-resources/V9-Architecture-crazyflie.drawio.svg)
 
