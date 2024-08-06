@@ -91,6 +91,15 @@ python3 main.py maf/config/new_config.json
 
 ![Default](docs/static-resources/V9-Architecture-default.drawio.svg)
 
+### Circle around center
+
+Click on the following image to play the video:
+
+(Experiment was conducted in VU Amsterdam's laboratory)
+
+[![Watch the video](docs/static-resources/circle_around_center_vu_thumbnail.png)](docs/videos/circle_around_center_vu.mp4)
+
+
 ## Integrations
 
 ### Crazyflie
