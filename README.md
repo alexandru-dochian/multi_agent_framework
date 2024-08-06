@@ -80,7 +80,6 @@ python3 main.py maf/config/new_config.json
 
 ![Architecture](docs/static-resources/V9-Architecture.drawio.svg)
 
-
 ## Experiments
 
 ### Hello World experiment (`hello_world.json`)
@@ -93,12 +92,15 @@ python3 main.py maf/config/new_config.json
 
 ### Circle around center
 
-Click on the following image to play the video:
+(Experiment was conducted in VU Amsterdam's laboratory)
+
+[![Watch the video](docs/static-resources/circle_around_center_vu_thumbnail.png)](https://alexandru-dochian.github.io/multi_agent_framework/pages/circle_around_center.html)
+
+### Circle spin
 
 (Experiment was conducted in VU Amsterdam's laboratory)
 
-[![Watch the video](docs/static-resources/circle_around_center_vu_thumbnail.png)](docs/videos/circle_around_center_vu.mp4)
-
+[![Watch the video](docs/static-resources/circle_spin_vu_thumbnail.png)](https://alexandru-dochian.github.io/multi_agent_framework/pages/circle_spin.html)
 
 ## Integrations
 
@@ -106,17 +108,13 @@ Click on the following image to play the video:
 
 [Bitcraze documentation](https://www.bitcraze.io/documentation/repository/)
 
-
 ![Crazyflie integration](docs/static-resources/V9-Architecture-crazyflie.drawio.svg)
-
-
 
 ## Future work
 
 ### On-the-edge deployment of crazyflie drones
 
 ![DevelopmentLayer](docs/static-resources/V10-OnTheEdge.drawio.svg)
-
 
 ## LICENSE
 
