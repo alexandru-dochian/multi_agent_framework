@@ -414,6 +414,7 @@ class CFDrone2D(Agent):
 class HelloWorldAgentConfig(Config):
     agent_id: str = "HelloWorldAgent"
     delay: int = 1000  # ms
+    initial_state: int = 0
 
 
 class HelloWorldAgent(Agent):
@@ -426,7 +427,7 @@ class HelloWorldAgent(Agent):
         config: HelloWorldAgentConfig = HelloWorldAgentConfig(**config)
         super().__init__(
             config=config,
-            state=0,
+            state=config.initial_state,
             controller=get_controller(controller),
             communicator=get_communicator(communicator),
         )

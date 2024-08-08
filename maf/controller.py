@@ -248,7 +248,8 @@ class HillClimbingController(Controller):
 """
 
 
-class HelloWorldControllerConfig(Config): ...
+class HelloWorldControllerConfig(Config):
+    initial_state: int = 0
 
 
 class HelloWorldController(Controller):
@@ -256,13 +257,13 @@ class HelloWorldController(Controller):
     state: int
 
     def __init__(self, config: dict | None = None):
+        if config is None:
+            config = {}
+
+        config: HelloWorldControllerConfig = HelloWorldControllerConfig(**config)
         super().__init__(
-            config=(
-                HelloWorldControllerConfig(**config)
-                if config
-                else HelloWorldControllerConfig()
-            ),
-            state=0,
+            config=config,
+            state=config.initial_state,
         )
 
     def predict(self) -> str:

@@ -94,6 +94,7 @@ class FieldModulationEnvironment(Environment):
 
 class HelloWorldEnvironmentConfig(Config):
     delay: int = 1000  # ms
+    initial_state: int = 0
 
 
 class HelloWorldEnvironment(Environment):
@@ -103,9 +104,10 @@ class HelloWorldEnvironment(Environment):
     communicator: Communicator
 
     def __init__(self, config: dict, communicator: dict):
+        config: HelloWorldEnvironmentConfig = HelloWorldEnvironmentConfig(**config)
         super().__init__(
-            config=HelloWorldEnvironmentConfig(**config),
-            state=0,
+            config=config,
+            state=config.initial_state,
             communicator=get_communicator(communicator),
         )
 
