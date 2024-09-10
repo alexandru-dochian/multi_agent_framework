@@ -116,7 +116,16 @@ python3 main.py maf/config/new_config.json
 
 ![DevelopmentLayer](docs/static-resources/V10-OnTheEdge.drawio.svg)
 
+### Cloud centric extension
+
+![DevelopmentLayer](docs/static-resources/V11-Cloud_Centric.drawio.svg)
+
 ## LICENSE
 
 This project is released under [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.txt)
 and it applies specifically to the [**maf**](maf) package.
+
+## Reference
+
+Alexandru Dochian. (2024). *Multi Agent Framework for Collective Intelligence Research*. arXiv preprint arXiv:2408.12391. [https://arxiv.org/abs/2408.12391](https://arxiv.org/abs/2408.12391)
+
